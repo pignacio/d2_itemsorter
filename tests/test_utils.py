@@ -8,7 +8,7 @@ import logging
 from pignacio_scripts.testing.testcase import TestCase
 
 from d2_itemsorter.utils import (bits_to_int, int_to_bits, bytes_to_bits,
-                                 bits_to_bytes, bits_to_chars, chars_to_bits)
+                                 bits_to_bytes, bits_to_str, str_to_bits)
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -95,37 +95,37 @@ class BytesToBitsTests(TestCase):
         self.assertRaises(ValueError, bytes_to_bits, [-1])
 
 
-class BitsToCharsTests(TestCase):
-    ''' Tests for `d2_itemsorter.utils.bits_to_chars`.'''
+class BitsToStrTests(TestCase):
+    ''' Tests for `d2_itemsorter.utils.bits_to_str`.'''
 
     def test_bit_order(self):
-        self.assertEqual(bits_to_chars("0100000011111101"), '\x02\xbf')
+        self.assertEqual(bits_to_str("0100000011111101"), '\x02\xbf')
 
     def test_ascii(self):
         self.assertEqual(
-            bits_to_chars("100001100101111010000010010110100000110010011100"),
+            bits_to_str("100001100101111010000010010110100000110010011100"),
             'azAZ09')
 
     def test_char_size(self):
         self.assertEqual(
-            bits_to_chars("000100100001011",
-                          char_size=5),
+            bits_to_str("000100100001011",
+                        char_size=5),
             '\x08\x02\x1a')
 
 
-class CharsToBitsTests(TestCase):
-    ''' Tests for `d2_itemsorter.utils.chars_to_bits`.'''
+class StrToBitsTests(TestCase):
+    ''' Tests for `d2_itemsorter.utils.str_to_bits`.'''
 
     def test_bit_order(self):
-        self.assertEqual(chars_to_bits("\x02\xbf"), '0100000011111101')
+        self.assertEqual(str_to_bits("\x02\xbf"), '0100000011111101')
 
     def test_ascii(self):
         self.assertEqual(
-            chars_to_bits("azAZ09"),
+            str_to_bits("azAZ09"),
             '100001100101111010000010010110100000110010011100')
 
     def test_char_size(self):
         self.assertEqual(
-            chars_to_bits('\x08\x02\x1a',
-                          char_size=5),
+            str_to_bits('\x08\x02\x1a',
+                        char_size=5),
             '000100100001011')

@@ -2,43 +2,23 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division
 
-from StringIO import StringIO
 import collections
-import json
 import logging
 import sys
 
 from pignacio_scripts.terminal import color
+import click
 
 from .logger import Logger
 from .schema import SchemaPiece, Integer, Chars, BinarySchema, Until
-from .utils import bits_to_int, int_to_bits
+from .utils import bits_to_int, int_to_bits, str_to_bits, bits_to_str
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
-
-def _bytes_to_hex(bytes_):
-    return "[{}]".format(" ".join(hex(b) for b in bytes_))
-
-
-def _values_to_bytes_array(*values):
-    all_values = []
-    for value in values:
-        value_bytes = []
-        if value == 0:
-            value_bytes = [0]
-        else:
-            while value:
-                value, value_byte = divmod(value, 256)
-                value_bytes.append(value_byte)
-        all_values.extend(reversed(value_bytes))
-    return all_values
-
-
-_SHARED_STASH_HEADER = _values_to_bytes_array(0x5353, 0x5300, 0x3031)
-_STASH_HEADER = _values_to_bytes_array(0x4353, 0x544d, 0x3031)
-_PAGE_HEADER = _values_to_bytes_array(0x535400, 0x4a, 0x4d)
-_ITEM_HEADER = _values_to_bytes_array(0x4a, 0x4d)
+_SHARED_STASH_HEADER = str_to_bits("\x53\x53\x53\x00\x30\x31")
+_STASH_HEADER = str_to_bits("\x43\x53\x54\x4d\x30\x31")
+_PAGE_HEADER = str_to_bits("\x53\x54\x00\x4a\x4d")
+_ITEM_HEADER = str_to_bits("\x4a\x4d")
 
 ItemTypeInfo = collections.namedtuple('ItemTypeInfo', ['id', 'name', 'width',
                                                        'height'])
@@ -52,6 +32,7 @@ def _load_items(fname):
             values['width'] = int(values['width'])
             values['height'] = int(values['height'])
             yield ItemTypeInfo(**values)
+
 
 _KNOWN_ITEM_TYPES = {d.id: d for d in _load_items('items.csv')}
 
@@ -68,66 +49,72 @@ def _get_item_type_info(item_type):
         return ItemTypeInfo(item_type, '??????????', '?', '?')
 
 
-def _process_filename(fname):
-    if fname == '-':
-        _process_handle(sys.stdin, "<STDIN>")
-    else:
-        with open(fname) as handle:
-            _process_handle(handle, fname)
+def _item_position(item):
+    try:
+        return (item['position_y'], item['position_x'])
+    except KeyError:
+        try:
+            subitem = item['item']
+        except KeyError:
+            raise ValueError("Could not find position for item.")
+        else:
+            return _item_position(subitem)
 
 
-def _process_handle(handle, label):
-    with Logger.add_level("Reading from '{}'", label):
+def _show_stash(stash):
+    Logger.info("Has {} pages", stash['page_count'])
+    for page_no, page in enumerate(stash['pages']):
+        with Logger.add_level("Page {}/{}", page_no + 1, stash['page_count']):
+            Logger.info("Item count: {}", page['item_count'])
+            for item_no, item in enumerate(sorted(page['items'],
+                                                  key=_item_position)):
+                item_data = item['item']
+                gems = item['gems']
+                item_type = item_data['item_type']
+                item_info = _get_item_type_info(item_type)
+                data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
+                    d=item_info)
+                Logger.info("Item {}/{}: [{},{}] - {}".format(
+                    item_no + 1, page['item_count'], item_data[
+                        'position_x'], item_data['position_y'], data))
+                if gems:
+                    with Logger.add_level('Has {} gems', len(gems)):
+                        for gem_no, gem in enumerate(gems):
+                            gem_type = gem['item_type']
+                            gem_info = _get_item_type_info(gem_type)
+                            Logger.info(
+                                "Gem {}/{}: {d.id} = {d.name} ({d.width}x{d.height})",
+                                gem_no + 1,
+                                len(gem),
+                                d=gem_info)
+
+
+def _get_all_items_from_stash(stash):
+    for page in stash['pages']:
+        for item in page['items']:
+            yield item
+
+
+def _process_handle(handle):
+    with Logger.add_level("Reading from '{}'", handle.name):
         str_contents = handle.read()
-        byte_contents = [ord(c) for c in str_contents]
-        Logger.info("Size: {} bytes", len(byte_contents))
-        # contents = ContentIter(byte_contents)
-        # parser = Parser(contents)
-        # _parse_stash(parser)
-        binary_str = "".join(int_to_bits(x)[::-1] for x in byte_contents)
+        Logger.info("Size: {} bytes", len(str_contents))
 
-        shared_header = "".join(int_to_bits(x)[::-1]
-                                for x in _SHARED_STASH_HEADER)
+        binary_str = str_to_bits(str_contents)
+
         parser = (BinarySchema(_SHARED_STASH_SCHEMA)
-                  if binary_str.startswith(shared_header) else
+                  if binary_str.startswith(_SHARED_STASH_HEADER) else
                   BinarySchema(_PERSONAL_STASH_SCHEMA))
         parsed = parser.decode(binary_str)
-        Logger.info("Found {} pages", parsed['page_count'])
-        all_items = []
-        for page_no, page in enumerate(parsed['pages']):
-            with Logger.add_level("Page {}/{}", page_no + 1,
-                                  parsed['page_count']):
-                Logger.info("Item count: {}", page['item_count'])
-                for item_no, item in enumerate(sorted(
-                        page['items'],
-                        key=
-                        lambda i: (i['item']['position_y'], i['item']['position_x']))):
-                    all_items.append(item)
-                    item_data = item['item']
-                    gems = item['gems']
-                    item_type = item_data['item_type']
-                    item_info = _get_item_type_info(item_type)
-                    data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
-                        d=item_info)
-                    Logger.info("Item {}/{}: [{},{}] - {}".format(
-                        item_no + 1, page['item_count'], item_data[
-                            'position_x'], item_data['position_y'], data))
-                    if gems:
-                        with Logger.add_level('Has {} gems', len(gems)):
-                            for gem_no, gem in enumerate(gems):
-                                gem_type = gem['item_type']
-                                gem_info = _get_item_type_info(gem_type)
-                                Logger.info(
-                                    "Gem {}/{}: {d.id} = {d.name} ({d.width}x{d.height})",
-                                    gem_no + 1,
-                                    len(gem),
-                                    d=gem_info)
+
+        _show_stash(parsed)
+        all_items = list(_get_all_items_from_stash(parsed))
 
         from .pager import items_to_rows, rows_to_pages
         rows = items_to_rows(all_items)
         pages = rows_to_pages(rows, _KNOWN_ITEM_TYPES)
         pages = [{
-            'header': [chr(c) for c in _PAGE_HEADER],
+            'header': bits_to_str(_PAGE_HEADER),
             'item_count': len(p),
             'items': p,
         } for p in pages]
@@ -135,52 +122,17 @@ def _process_handle(handle, label):
         parsed['page_count'] = len(pages)
         parsed['pages'] = pages
 
-        Logger.info("Post sort")
-        for page_no, page in enumerate(parsed['pages']):
-            with Logger.add_level("Page {}/{}", page_no + 1,
-                                  parsed['page_count']):
-                Logger.info("Item count: {}", page['item_count'])
-                for item_no, item in enumerate(sorted(
-                        page['items'],
-                        key=
-                        lambda i: (i['item']['position_y'], i['item']['position_x']))):
-                    item_data = item['item']
-                    gems = item['gems']
-                    item_type = item_data['item_type']
-                    item_info = _get_item_type_info(item_type)
-                    data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
-                        d=item_info)
-                    Logger.info("Item {}/{}: [{},{}] - {}".format(
-                        item_no + 1, page['item_count'], item_data[
-                            'position_x'], item_data['position_y'], data))
-                    if gems:
-                        with Logger.add_level('Has {} gems', len(gems)):
-                            for gem_no, gem in enumerate(gems):
-                                gem_type = gem['item_type']
-                                gem_info = _get_item_type_info(gem_type)
-                                Logger.info(
-                                    "Gem {}/{}: {d.id} = {d.name} ({d.width}x{d.height})",
-                                    gem_no + 1,
-                                    len(gem),
-                                    d=gem_info)
+        _show_stash(parsed)
+
         binary = parser.encode(parsed)
-        print binary
         print len(binary)
-        mybytes = [bits_to_int(binary[s:s+8][::-1]) for s in xrange(0, len(binary), 8)]
-        chars = [chr(b) for b in mybytes]
-        with open("test.d2x", "w") as fout:
-            fout.write("".join(chars))
+        with open("/tmp/test.d2x", "w") as fout:
+            fout.write(bits_to_str(binary))
 
 
 _EXTENDED_ITEM_SCHEMA = [
     SchemaPiece('gem_count', Integer(3)),
 ]  # yapf: disable
-
-
-_ITEM_STOP_PATTERNS = [
-    "".join(int_to_bits(x)[::-1]
-            for x in pat) for pat in [_PAGE_HEADER, _ITEM_HEADER]
-]
 
 
 _ITEM_DATA_SCHEMA = [
@@ -201,7 +153,7 @@ _ITEM_DATA_SCHEMA = [
         'extended_info',
         BinarySchema(_EXTENDED_ITEM_SCHEMA),
         condition=lambda v: not v['simple']),
-    SchemaPiece('tail', Until(_ITEM_STOP_PATTERNS))
+    SchemaPiece('tail', Until([_PAGE_HEADER, _ITEM_HEADER]))
 ]  # yapf: disable
 
 
@@ -243,13 +195,15 @@ _SHARED_STASH_SCHEMA = [
 ]  # yapf: disable
 
 
-def main():
-    if len(sys.argv) == 1:
-        # _process_handle(sys.stdin, '<STDIN>')
-        _process_filename('Aleeria06.d2x')
-    else:
-        for fname in sys.argv[1:]:
-            _process_filename(fname)
+@click.command()
+@click.argument('filename', type=click.File('rb'))
+@click.option('--debug', default=False, help='Turn on debug mode')
+def parse(filename, debug):
+    level = logging.DEBUG if debug else logging.INFO
+    logging.basicConfig(stream=sys.stdout, level=level)
+    logging.debug("PAGE: %s, %s", _PAGE_HEADER, bits_to_str(_PAGE_HEADER))
+    logging.debug("ITEM: %s, %s", _ITEM_HEADER, bits_to_str(_ITEM_HEADER))
+    _process_handle(filename)
 
     if _MISSING_ITEM_TYPES:
         print "Missing item types:", repr(sorted(_MISSING_ITEM_TYPES))

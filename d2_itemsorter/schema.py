@@ -3,11 +3,14 @@
 from __future__ import absolute_import, division
 
 import collections
+import logging
 
-from pignacio_scripts.namedtuple.nt_with_defaults import namedtuple_with_defaults
+from pignacio_scripts.namedtuple import namedtuple_with_defaults
 
 from .logger import Logger
 from .utils import bits_to_int, int_to_bits
+
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class Integer(object):
@@ -95,6 +98,11 @@ class BinarySchema(object):
             type_ = (Nothing(piece.type) if isinstance(piece.type, (int, long))
                      else piece.type)
             if self._should_parse(piece, res):
+                logger.debug("Parsing %s from position %s/%s", piece.field,
+                             position, len(binary_str))
+                logger.debug("Str: %s%s", binary_str[position:position + 50],
+                             '[...]'
+                             if len(binary_str) > position + 50 else '')
                 if piece.multiple:
                     if isinstance(piece.multiple, (int, long)):
                         count = piece.multiple

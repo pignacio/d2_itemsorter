@@ -12,6 +12,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
 requirements = [
+    'click',
     'pignacio_scripts',
 ]
 
@@ -43,7 +44,7 @@ setup(
     test_suite='tests',
     entry_points={
         'console_scripts': [
-            'd2_parse=d2_itemsorter.stash_parser:main',
+            'd2_parse=d2_itemsorter.stash_parser:parse',
         ],
     },
 )
