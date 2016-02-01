@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division
 
+import collections
+import itertools
 import logging
 import sys
 
@@ -19,7 +21,6 @@ _SHARED_STASH_HEADER = str_to_bits("\x53\x53\x53\x00\x30\x31")
 _STASH_HEADER = str_to_bits("\x43\x53\x54\x4d\x30\x31")
 _PAGE_HEADER = str_to_bits("\x53\x54\x00\x4a\x4d")
 _ITEM_HEADER = str_to_bits("\x4a\x4d")
-
 
 _GREEN_TICK = color.bright_green(u"[✓]")
 
@@ -58,6 +59,66 @@ def _get_all_items_from_stash(stash):
             yield item
 
 
+_ITEMS_SORT_ORDER = [
+    [['rvsl']],
+    [['ept '], ['ep2 '], ['ep3 '], ['ep4 ']],
+    [['cm1 '], ['cm2 '], ['cm3 ']],
+    [['amu ']],
+    [['rin ']],
+    # TODO(irossi): find a way to sort all souls
+    [['1921', '644 ']],
+    [
+        ['gcb '],
+        ['gcg '],
+        ['gcr '],
+    ],
+    [['jew ']],
+    [['trpg']],
+    [['gld1', 'gld2', 'gld3']],
+    [['cb1 ', 'fuk ', 'egb ', 'spg ']],
+    [['ggr ']],
+]  # yapf: disable
+
+
+def _get_all_sorted_item_types(sort_order):
+    res = set()
+    for page in sort_order:
+        for row in page:
+            for row_type in row:
+                if row_type in res:
+                    raise ValueError(
+                        "Duplicate item type in sort order: {!r}".format(
+                            row_type))
+                res.add(row_type)
+    return res
+
+
+def _extract_sorted_items(pages, sort_order):
+    item_types = _get_all_sorted_item_types(sort_order)
+    extracted = collections.defaultdict(list)
+    for page in pages:
+        new_page_items = []
+        for item in page['items']:
+            item_type = item['item']['item_type']
+            if item_type in item_types:
+                extracted[item_type].append(item)
+            else:
+                new_page_items.append(item)
+        page['items'] = new_page_items
+        page['item_count'] = len(new_page_items)
+    return extracted
+
+
+def _sort_items(items_by_type, sort_order):
+    sorted_items = []
+    for page in sort_order:
+        sorted_items.append([])
+        for row in page:
+            items = [items_by_type.get(row_type, []) for row_type in row]
+            sorted_items[-1].append(list(itertools.chain(*items)))
+    return sorted_items
+
+
 def _process_handle(handle):
     with Logger.add_level("Reading from '{}'", handle.name):
         str_contents = handle.read()
@@ -68,29 +129,46 @@ def _process_handle(handle):
         parser = (BinarySchema(_SHARED_STASH_SCHEMA)
                   if binary_str.startswith(_SHARED_STASH_HEADER) else
                   BinarySchema(_PERSONAL_STASH_SCHEMA))
-        parsed = parser.decode(binary_str)
+        stash = parser.decode(binary_str)
 
-        _show_stash(parsed)
-        all_items = list(_get_all_items_from_stash(parsed))
+        _show_stash(stash)
+        extracted = _extract_sorted_items(stash['pages'], _ITEMS_SORT_ORDER)
 
-        from .pager import items_to_rows, rows_to_pages
-        rows = items_to_rows(all_items)
-        pages = rows_to_pages(rows)
-        pages = [{
+        _show_stash(stash)
+        for item_type, items in extracted.items():
+            Logger.info("Extracted items '{}' ({})", item_type, len(items))
+
+        from .pager import items_to_pages
+
+        sorted_items = _sort_items(extracted, _ITEMS_SORT_ORDER)
+        pages = items_to_pages(sorted_items)
+
+        empty_page = {
+            'header': bits_to_str(_PAGE_HEADER),
+            'item_count': 0,
+            'items': [],
+        }
+
+        new_pages = [empty_page]
+        new_pages.extend([p for p in stash['pages'] if p['items']])
+        new_pages.append(empty_page)
+        new_pages.extend([{
             'header': bits_to_str(_PAGE_HEADER),
             'item_count': len(p),
             'items': p,
-        } for p in pages]
+        } for p in pages if p])
 
-        parsed['page_count'] = len(pages)
-        parsed['pages'] = pages
+        stash['pages'] = new_pages
+        stash['page_count'] = len(new_pages)
 
-        _show_stash(parsed)
+        _show_stash(stash)
 
-        binary = parser.encode(parsed)
+        binary = parser.encode(stash)
         print len(binary)
+
         with open("/tmp/test.d2x", "w") as fout:
             fout.write(bits_to_str(binary))
+
 
 
 _EXTENDED_ITEM_SCHEMA = [

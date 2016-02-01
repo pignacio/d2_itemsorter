@@ -46,3 +46,57 @@ def rows_to_pages(rows):
         current_x = 0
         current_y = next_y
     return pages
+
+
+class Pager(object):
+    def __init__(self):
+        self._pages = [[]]
+        self._current_x = 0
+        self._current_y = 0
+        self._next_y = 0
+
+    def new_page(self):
+        self._pages.append([])
+        self._current_x = 0
+        self._current_y = 0
+        self._next_y = 0
+
+    def new_row(self):
+        self._current_x = 0
+        self._current_y = self._next_y
+
+    @property
+    def pages(self):
+        return self._pages
+
+    def insert(self, item):
+        width, height = self._get_dimensions(item)
+        if self._current_x + width > _PAGE_WIDTH:
+            self.new_row()
+        if self._current_y + height > _PAGE_HEIGHT:
+            self.new_page()
+        item['item']['position_x'] = self._current_x
+        item['item']['position_y'] = self._current_y
+        self._pages[-1].append(item)
+        self._current_x += width
+        self._next_y = max(self._next_y, self._current_y + height)
+
+    @staticmethod
+    def _get_dimensions(item):
+        info = get_item_type_info(item['item']['item_type'])
+        if info.width != '?':
+            return info.width, info.height
+        else:
+            return 2, 4
+
+
+def items_to_pages(sorted_items):
+    pager = Pager()
+
+    for page in sorted_items:
+        for row in page:
+            for item in row:
+                pager.insert(item)
+            pager.new_row()
+        pager.new_page()
+    return pager.pages
