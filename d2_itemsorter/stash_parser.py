@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division
 
-import collections
 import logging
 import sys
 
 from pignacio_scripts.terminal import color
 import click
 
+from .items import get_item_type_info, item_position, MISSING_ITEM_TYPES
 from .logger import Logger
 from .schema import SchemaPiece, Integer, Chars, BinarySchema, Until
-from .utils import bits_to_int, int_to_bits, str_to_bits, bits_to_str
+from .utils import str_to_bits, bits_to_str
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -20,45 +20,8 @@ _STASH_HEADER = str_to_bits("\x43\x53\x54\x4d\x30\x31")
 _PAGE_HEADER = str_to_bits("\x53\x54\x00\x4a\x4d")
 _ITEM_HEADER = str_to_bits("\x4a\x4d")
 
-ItemTypeInfo = collections.namedtuple('ItemTypeInfo', ['id', 'name', 'width',
-                                                       'height'])
-
-
-def _load_items(fname):
-    with open(fname) as fin:
-        headers = fin.readline().strip().split(",")
-        for line in fin:
-            values = dict(zip(headers, line.strip().split(',')))
-            values['width'] = int(values['width'])
-            values['height'] = int(values['height'])
-            yield ItemTypeInfo(**values)
-
-
-_KNOWN_ITEM_TYPES = {d.id: d for d in _load_items('items.csv')}
-
-_MISSING_ITEM_TYPES = set()
 
 _GREEN_TICK = color.bright_green(u"[✓]")
-
-
-def _get_item_type_info(item_type):
-    try:
-        return _KNOWN_ITEM_TYPES[item_type]
-    except KeyError:
-        _MISSING_ITEM_TYPES.add(item_type)
-        return ItemTypeInfo(item_type, '??????????', '?', '?')
-
-
-def _item_position(item):
-    try:
-        return (item['position_y'], item['position_x'])
-    except KeyError:
-        try:
-            subitem = item['item']
-        except KeyError:
-            raise ValueError("Could not find position for item.")
-        else:
-            return _item_position(subitem)
 
 
 def _show_stash(stash):
@@ -67,11 +30,11 @@ def _show_stash(stash):
         with Logger.add_level("Page {}/{}", page_no + 1, stash['page_count']):
             Logger.info("Item count: {}", page['item_count'])
             for item_no, item in enumerate(sorted(page['items'],
-                                                  key=_item_position)):
+                                                  key=item_position)):
                 item_data = item['item']
                 gems = item['gems']
                 item_type = item_data['item_type']
-                item_info = _get_item_type_info(item_type)
+                item_info = get_item_type_info(item_type)
                 data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
                     d=item_info)
                 Logger.info("Item {}/{}: [{},{}] - {}".format(
@@ -81,7 +44,7 @@ def _show_stash(stash):
                     with Logger.add_level('Has {} gems', len(gems)):
                         for gem_no, gem in enumerate(gems):
                             gem_type = gem['item_type']
-                            gem_info = _get_item_type_info(gem_type)
+                            gem_info = get_item_type_info(gem_type)
                             Logger.info(
                                 "Gem {}/{}: {d.id} = {d.name} ({d.width}x{d.height})",
                                 gem_no + 1,
@@ -112,7 +75,7 @@ def _process_handle(handle):
 
         from .pager import items_to_rows, rows_to_pages
         rows = items_to_rows(all_items)
-        pages = rows_to_pages(rows, _KNOWN_ITEM_TYPES)
+        pages = rows_to_pages(rows)
         pages = [{
             'header': bits_to_str(_PAGE_HEADER),
             'item_count': len(p),
@@ -205,5 +168,5 @@ def parse(filename, debug):
     logging.debug("ITEM: %s, %s", _ITEM_HEADER, bits_to_str(_ITEM_HEADER))
     _process_handle(filename)
 
-    if _MISSING_ITEM_TYPES:
-        print "Missing item types:", repr(sorted(_MISSING_ITEM_TYPES))
+    if MISSING_ITEM_TYPES:
+        print "Missing item types:", repr(sorted(MISSING_ITEM_TYPES))
