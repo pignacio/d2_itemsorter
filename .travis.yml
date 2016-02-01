@@ -1,0 +1,19 @@
+# Config file for automatic testing at travis-ci.org
+
+language: python
+
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+
+install:
+  - "pip install ."
+  - "pip install -r requirements/test.txt"
+  - "pip install python-coveralls"
+
+# command to run tests, e.g. python setup.py test
+script: make test-cover
+
+after_success:
+  - coveralls
