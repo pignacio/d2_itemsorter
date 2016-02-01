@@ -41,6 +41,10 @@ lint:
 	-find d2_itemsorter -name "*.py" -exec pylint {} +
 	-find tests -name "*.py" -exec pylint {} +
 
+todo:
+	-find d2_itemsorter -name "*.py" -exec pylint -d all -e fixme {} +
+	-find tests -name "*.py" -exec pylint -d all -e fixme {} +
+
 test: test-deps clean-pyc
 	python setup.py nosetests
 
