@@ -25,13 +25,25 @@ def int_to_bits(value, padding=8):
     return res
 
 
+def bytes_to_bits(bytes_):
+    for index, byte in enumerate(bytes_):
+        if not 0 <= byte < 256:
+            raise ValueError("Invalid byte value at index {}: {}".format(index,
+                                                                         byte))
+    return "".join(int_to_bits(b)[::-1] for b in bytes_)
+
+
+def bits_to_bytes(bits):
+    return [bits_to_int(bits[s:s + 8][::-1])  for s in xrange(0,len(bits), 8)]
+
+
 def bits_to_chars(bits, char_size=8):
     split_bits = (bits[s:s + char_size]
                   for s in xrange(0, len(bits), char_size))
-    char_ords = (bits_to_int(bs) for bs in split_bits)
+    char_ords = (bits_to_int(bs[::-1]) for bs in split_bits)
     return "".join(chr(o) for o in char_ords)
 
 
 def chars_to_bits(chars, char_size=8):
-    chard_ords = (ord(c) for c in chars)
-    return "".join(int_to_bits(o, padding=char_size) for o in char_ords)
+    char_ords = (ord(c) for c in chars)
+    return "".join(int_to_bits(o, padding=char_size)[::-1] for o in char_ords)
