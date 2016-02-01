@@ -12,7 +12,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
 requirements = [
-    # TODO: put package requirements here
+    'pignacio_scripts',
 ]
 
 setup(
@@ -41,4 +41,9 @@ setup(
         'Programming Language :: Python :: 3.4',
     ],
     test_suite='tests',
+    entry_points={
+        'console_scripts': [
+            'd2_parse=d2_itemsorter.stash_parser:main',
+        ],
+    },
 )
