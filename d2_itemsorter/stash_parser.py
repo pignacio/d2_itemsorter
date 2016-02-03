@@ -5,7 +5,9 @@ from __future__ import absolute_import, division
 import collections
 import itertools
 import logging
+import os
 import sys
+import time
 
 from pignacio_scripts.terminal import color
 import click
@@ -137,10 +139,22 @@ def _sort_items(items_by_type, sort_order):
     return sorted_items
 
 
-def _process_handle(handle):
+def _process_handle(handle, patch=False):
     with Logger.add_level("Reading from '{}'", handle.name):
         str_contents = handle.read()
         Logger.info("Size: {} bytes", len(str_contents))
+        if os.path.exists(handle.name):
+            fname, extension = os.path.basename(handle.name).rsplit(".", 1)
+            backup_file = os.path.join("backups", "{}-{}.{}".format(
+                fname, int(time.time()), extension))
+            try:
+                os.makedirs('backups')
+            except OSError:
+                pass
+            Logger.info("Writing backup...")
+            with open(backup_file, 'wb') as fout:
+                fout.write(str_contents)
+            Logger.info("Done writing backup")
 
         binary_str = str_to_bits(str_contents)
 
@@ -183,10 +197,16 @@ def _process_handle(handle):
 
         binary = parser.encode(stash)
         print len(binary)
+        contents = bits_to_str(binary)
+
+        if os.path.exists(handle.name) and patch:
+            Logger.info('Patching: {}', handle.name)
+            with open(handle.name, 'wb') as fout:
+                fout.write(contents)
 
         with open("/tmp/test.d2x", "w") as fout:
-            fout.write(bits_to_str(binary))
-
+            Logger.info('Writing to: /tmp/test.d2x', handle.name)
+            fout.write(contents)
 
 
 _EXTENDED_ITEM_SCHEMA = [
@@ -234,6 +254,7 @@ _PAGE_SCHEMA = [
         multiple=lambda v: v['item_count']),
 ]  # yapf: disable
 
+
 _PERSONAL_STASH_SCHEMA = [
     SchemaPiece('header', Chars(6)),
     SchemaPiece('_unk1', 32),
@@ -243,6 +264,7 @@ _PERSONAL_STASH_SCHEMA = [
         BinarySchema(_PAGE_SCHEMA),
         multiple=lambda v: v['page_count']),
 ]  # yapf: disable
+
 
 _SHARED_STASH_SCHEMA = [
     SchemaPiece('header', Chars(6)),
@@ -256,13 +278,14 @@ _SHARED_STASH_SCHEMA = [
 
 @click.command()
 @click.argument('filename', type=click.File('rb'))
-@click.option('--debug', default=False, help='Turn on debug mode')
-def parse(filename, debug):
+@click.option('--debug', is_flag=True, help='Turn on debug mode')
+@click.option('--patch', is_flag=True, help='Patch the file in place')
+def parse(filename, debug, patch):
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(stream=sys.stdout, level=level)
     logging.debug("PAGE: %s, %s", _PAGE_HEADER, bits_to_str(_PAGE_HEADER))
     logging.debug("ITEM: %s, %s", _ITEM_HEADER, bits_to_str(_ITEM_HEADER))
-    _process_handle(filename)
+    _process_handle(filename, patch=patch)
 
     if MISSING_ITEM_TYPES:
         print "Missing item types:", repr(sorted(MISSING_ITEM_TYPES))
