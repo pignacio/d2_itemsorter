@@ -44,5 +44,5 @@ class Logger(object):
     def add_level(cls, *args, **kwargs):
         if args:
             format_str, nargs = args[0], args[1:]
-        cls._log(color.blue(format_str), *nargs, **kwargs)
+            cls._log(color.blue(format_str), *nargs, **kwargs)
         return cls._Indenter()

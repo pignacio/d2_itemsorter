@@ -5,12 +5,27 @@ from __future__ import absolute_import, division
 import collections
 import logging
 
-from .items import get_item_type_info
+from pignacio_scripts.namedtuple import namedtuple_with_defaults
+
+from .items import get_item_type_info, item_quality_id
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 _PAGE_WIDTH = 10
 _PAGE_HEIGHT = 10
+
+
+def default_sort(items):
+    return sorted(items, key=lambda i: -i.quality_id())
+
+
+ItemFilter = namedtuple_with_defaults('ItemFilter',
+                                      ['name', 'filter', 'sort'],
+                                      defaults={'sort': default_sort})
+
+
+def item_type_filter(item_type):
+    return ItemFilter(name=item_type, filter=lambda i: i.type() == item_type)
 
 
 def items_to_rows(items):

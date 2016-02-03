@@ -12,8 +12,10 @@ import time
 from pignacio_scripts.terminal import color
 import click
 
-from .items import get_item_type_info, item_position, MISSING_ITEM_TYPES
+from .items import (get_item_type_info, item_position, MISSING_ITEM_TYPES,
+                    QUALITY_NAMES, item_quality_id, Item, UNIQUE_QUALITY_ID)
 from .logger import Logger
+from .pager import item_type_filter, ItemFilter
 from .schema import SchemaPiece, Integer, Chars, BinarySchema, Until
 from .utils import str_to_bits, bits_to_str
 
@@ -32,33 +34,61 @@ def _show_stash(stash):
     for page_no, page in enumerate(stash['pages']):
         with Logger.add_level("Page {}/{}", page_no + 1, stash['page_count']):
             Logger.info("Item count: {}", page['item_count'])
-            for item_no, item in enumerate(sorted(page['items'],
-                                                  key=item_position)):
-                item_data = item['item']
-                gems = item['gems']
-                item_type = item_data['item_type']
-                item_info = get_item_type_info(item_type)
+            for item_no, item_data in enumerate(
+                    sorted(page['items'],
+                           key=lambda i: Item(i).position())):
+                gems = item_data['gems']
+                item = Item(item_data)
+                item_info = get_item_type_info(item.type())
                 data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
                     d=item_info)
-                Logger.info("Item {}/{}: [{},{}] - {}".format(
-                    item_no + 1, page['item_count'], item_data[
-                        'position_x'], item_data['position_y'], data))
-                if gems:
-                    with Logger.add_level('Has {} gems', len(gems)):
-                        for gem_no, gem in enumerate(gems):
-                            gem_type = gem['item_type']
-                            gem_info = get_item_type_info(gem_type)
-                            Logger.info(
-                                "Gem {}/{}: {d.id} = {d.name} ({d.width}x{d.height})",
-                                gem_no + 1,
-                                len(gem),
-                                d=gem_info)
+                Logger.info("Item {}/{}: {} - {} [{}]".format(
+                    item_no + 1, page['item_count'], item.position(
+                    ), data, item.quality()))
+                with Logger.add_level():
+                    extended_info = item_data.get('extended_info')
+                    if extended_info:
+                        Logger.info("ExInfo: q:{} iLvl:{}",
+                                    extended_info['quality'],
+                                    extended_info['drop_level'])
+                    if gems:
+                        with Logger.add_level('Has {} gems', len(gems)):
+                            for gem_no, gem in enumerate(gems):
+                                gem_type = gem['item_type']
+                                gem_info = get_item_type_info(gem_type)
+                                Logger.info(
+                                    "Gem {}/{}: {d.id} = {d.name} ({d.width}x{d.height})",
+                                    gem_no + 1,
+                                    len(gem),
+                                    d=gem_info)
 
 
 def _get_all_items_from_stash(stash):
     for page in stash['pages']:
         for item in page['items']:
             yield item
+
+
+_INVALID_UNIQUE_TYPES = {'mbag', 'mgat'}
+
+
+def is_valid_unique(item):
+    return (item.quality_id() == UNIQUE_QUALITY_ID and not item.is_soul() and
+            not item.type() in _INVALID_UNIQUE_TYPES)
+
+
+def sort_uniques(items):
+    return sorted(items, key=lambda i: i.type())
+
+
+def sort_by_level(items):
+    return sorted(items, key=lambda i: i.level())
+
+
+_ITEM_FILTERS = [
+    ItemFilter('uniques', filter=is_valid_unique, sort=sort_uniques),
+    ItemFilter('souls', filter=lambda i: i.is_soul(), sort=sort_by_level),
+]  # yapf: disable
 
 
 _ITEMS_SORT_ORDER = [
@@ -69,12 +99,7 @@ _ITEMS_SORT_ORDER = [
     [['rin ']],
     # TODO(irossi): find a way to sort all souls
     [[
-        '1920',
-        '1921',
-        '635 ',
-        '644 ',
-        '652 ',
-        '505 ',
+        'souls',
     ]],
     [
         ['gsb ', 'gfb ', 'gcb '],
@@ -97,7 +122,22 @@ _ITEMS_SORT_ORDER = [
     [['01d ']],
     [['ggr ']],
     [['m03 ', 'm04 ']],
+    [['uniques']],
 ]  # yapf: disable
+
+
+def _get_all_filters(sort_order, pre_filters):
+    filters = []
+    names = set()
+    by_name = {f.name: f for f in pre_filters}
+    for page in sort_order:
+        for row in page:
+            for row_piece in row:
+                names.add(row_piece)
+                if row_piece not in by_name:
+                    item_filter = item_type_filter(row_piece)
+                    filters.append(item_filter)
+    return [f for f in pre_filters if f.name in names] + filters
 
 
 def _get_all_sorted_item_types(sort_order):
@@ -113,28 +153,37 @@ def _get_all_sorted_item_types(sort_order):
     return res
 
 
-def _extract_sorted_items(pages, sort_order):
-    item_types = _get_all_sorted_item_types(sort_order)
+def _extract_items(pages, filters):
     extracted = collections.defaultdict(list)
     for page in pages:
         new_page_items = []
-        for item in page['items']:
-            item_type = item['item']['item_type']
-            if item_type in item_types:
-                extracted[item_type].append(item)
+        for item_data in page['items']:
+            item = Item(item_data)
+            for item_filter in filters:
+                if item.type() == 'mbag':
+                    print item_filter.name, item_filter.filter(item)
+                if item_filter.filter(item):
+                    extracted[item_filter.name].append(item)
+                    break
             else:
-                new_page_items.append(item)
+                new_page_items.append(item_data)
         page['items'] = new_page_items
         page['item_count'] = len(new_page_items)
+
+    for item_filter in filters:
+        extracted[item_filter.name] = [item.data
+                                       for item in item_filter.sort(extracted[
+                                           item_filter.name])]
+
     return extracted
 
 
-def _sort_items(items_by_type, sort_order):
+def _sort_items(items_by_filter, sort_order):
     sorted_items = []
     for page in sort_order:
         sorted_items.append([])
         for row in page:
-            items = [items_by_type.get(row_type, []) for row_type in row]
+            items = [items_by_filter.get(row_piece, []) for row_piece in row]
             sorted_items[-1].append(list(itertools.chain(*items)))
     return sorted_items
 
@@ -164,10 +213,12 @@ def _process_handle(handle, patch=False):
         stash = parser.decode(binary_str)
 
         _show_stash(stash)
-        extracted = _extract_sorted_items(stash['pages'], _ITEMS_SORT_ORDER)
+
+        filters = _get_all_filters(_ITEMS_SORT_ORDER, _ITEM_FILTERS)
+        extracted = _extract_items(stash['pages'], filters)
 
         _show_stash(stash)
-        for item_type, items in extracted.items():
+        for item_type, items in sorted(extracted.items()):
             Logger.info("Extracted items '{}' ({})", item_type, len(items))
 
         from .pager import items_to_pages
@@ -211,6 +262,9 @@ def _process_handle(handle, patch=False):
 
 _EXTENDED_ITEM_SCHEMA = [
     SchemaPiece('gem_count', Integer(3)),
+    SchemaPiece('guid', 32),
+    SchemaPiece('drop_level', Integer(7)),
+    SchemaPiece('quality', Integer(4)),
 ]  # yapf: disable
 
 

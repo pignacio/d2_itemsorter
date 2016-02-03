@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division
 
 import collections
+import functools
 import logging
 import os
 import pkg_resources
@@ -45,13 +46,99 @@ def get_item_type_info(item_type):
         return ItemTypeInfo(item_type, '??????????', '?', '?')
 
 
-def item_position(item):
+def _get_data_root(item):
     try:
-        return (item['position_y'], item['position_x'])
+        return item['item']
     except KeyError:
+        return item
+
+
+def item_position(item):
+    data = _get_data_root(item)
+    try:
+        return (data['position_y'], data['position_x'])
+    except KeyError:
+        raise ValueError("Could not find position for item.")
+
+
+def item_quality_id(item):
+    data = _get_data_root(item)
+    return data.get('extended_info', {}).get('quality', NORMAL_QUALITY_ID)
+
+
+NORMAL_QUALITY_ID = 2
+MAGIC_QUALITY_ID = 4
+RARE_QUALITY_ID = 5
+SET_QUALITY_ID = 6
+UNIQUE_QUALITY_ID = 7
+
+
+QUALITY_NAMES = {
+    1: 'Low Quality',
+    2: 'Normal',
+    3: 'High Quality',
+    4: 'Magic',
+    5: 'Set Item',
+    6: 'Rare',
+    7: 'Unique',
+    8: 'Crafted',
+}  # yapf: disable
+
+
+def _keyerror_net(func):
+    @functools.wraps(func)
+    def new_func(self, *args, **kwargs):
         try:
-            subitem = item['item']
+            return func(self, *args, **kwargs)
+        except KeyError as err:
+            raise ValueError("Could not find {} for item".format(err))
+
+    return new_func
+
+
+class Item(object):
+    def __init__(self, data):
+        self._data = data
+
+    @property
+    def data(self):
+        return self._data
+
+    def _data_root(self):
+        try:
+            return self._data['item']
         except KeyError:
-            raise ValueError("Could not find position for item.")
-        else:
-            return item_position(subitem)
+            return self._data
+
+    @_keyerror_net
+    def type(self):
+        data = self._data_root()
+        return data['item_type']
+
+    @_keyerror_net
+    def position(self):
+        data = self._data_root()
+        return (data['position_y'], data['position_x'])
+
+    def extended_info(self):
+        data = self._data_root()
+        return data.get('extended_info', {})
+
+    def quality_id(self):
+        ext_info = self.extended_info()
+        return ext_info.get('quality', NORMAL_QUALITY_ID)
+
+    def quality(self):
+        return QUALITY_NAMES[self.quality_id()]
+
+    def is_soul(self):
+        return self.type().strip().isdigit()
+
+    def level(self):
+        ext_info = self.extended_info()
+        return ext_info['drop_level']
+
+
+def item_quality_id(item):
+    data = _get_data_root(item)
+    return data.get('extended_info', {}).get('quality', NORMAL_QUALITY_ID)
