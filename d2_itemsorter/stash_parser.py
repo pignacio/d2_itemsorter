@@ -60,23 +60,41 @@ def _get_all_items_from_stash(stash):
 
 
 _ITEMS_SORT_ORDER = [
-    [['rvsl']],
-    [['ept '], ['ep2 '], ['ep3 '], ['ep4 ']],
+    [['rvsl'], ['rvs '], ['rvl ']],
+    [['ept '], ['ep2 '], ['ep3 '], ['ep4 '], ['ep5 '], ['ep6 ']],
     [['cm1 '], ['cm2 '], ['cm3 ']],
     [['amu ']],
     [['rin ']],
     # TODO(irossi): find a way to sort all souls
-    [['1921', '644 ']],
+    [[
+        '1920',
+        '1921',
+        '635 ',
+        '644 ',
+        '652 ',
+        '505 ',
+    ]],
     [
-        ['gcb '],
-        ['gcg '],
-        ['gcr '],
+        ['gsb ', 'gfb ', 'gcb '],
+        ['gsg ', 'gfg ', 'gcg '],
+        ['gsr ', 'gfr ', 'gcr '],
+        ['gsv ', 'gfv ', 'gcv '],
+        ['gsw ', 'gfw ', 'gcw '],
+        ['gsy ', 'gfy ', 'gcy '],
+        ['skl ', 'skf ', 'skc '],
+    ],
+    [
+        ['r{:02} '.format(i)] for i in xrange(1, 31)
     ],
     [['jew ']],
     [['trpg']],
-    [['gld1', 'gld2', 'gld3']],
-    [['cb1 ', 'fuk ', 'egb ', 'spg ']],
+    [['gld1'], ['gld2'], ['gld3'], ['gld4']],
+    [['cb1 '], ['fuk '], ['egb '], ['spg '], ['tet ']],
+    [['mbag']],
+    [['mgat']],
+    [['01d ']],
     [['ggr ']],
+    [['m03 ', 'm04 ']],
 ]  # yapf: disable
 
 
