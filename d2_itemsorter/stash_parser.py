@@ -12,10 +12,10 @@ import time
 from pignacio_scripts.terminal import color
 import click
 
-from .items import (MISSING_ITEM_TYPES, UNIQUE_QUALITY_ID, Item,
+from .items import (MISSING_ITEM_TYPES, UNIQUE_QUALITY_ID, SET_QUALITY_ID, Item,
                     get_item_type_info)
 from .logger import Logger
-from .pager import item_type_filter, ItemFilter
+from .pager import item_type_filter, ItemFilter, items_to_pages
 from .schema import SchemaPiece, Integer, Chars, BinarySchema, Until
 from .utils import str_to_bits, bits_to_str
 
@@ -46,11 +46,12 @@ def _show_stash(stash):
                     item_no + 1, page['item_count'], item.position(
                     ), data, item.quality()))
                 with Logger.add_level():
-                    extended_info = item_data.get('extended_info')
+                    extended_info = item.extended_info()
                     if extended_info:
-                        Logger.info("ExInfo: q:{} iLvl:{}",
+                        Logger.info("ExInfo: q:{} iLvl:{} setId:{}",
                                     extended_info['quality'],
-                                    extended_info['drop_level'])
+                                    extended_info['drop_level'],
+                                    extended_info.get('set_id'))
                     if gems:
                         with Logger.add_level('Has {} gems', len(gems)):
                             for gem_no, gem in enumerate(gems):
@@ -85,8 +86,17 @@ def sort_by_level(items):
     return sorted(items, key=lambda i: i.level())
 
 
+def is_valid_set_item(item):
+    return item.quality_id() == SET_QUALITY_ID
+
+
+def set_items_sort(items):
+    return sorted(items, key=lambda i: i.extended_info()['set_id'])
+
+
 _ITEM_FILTERS = [
     ItemFilter('uniques', filter=is_valid_unique, sort=sort_uniques),
+    ItemFilter('sets', filter=is_valid_set_item, sort=set_items_sort),
     ItemFilter('souls', filter=lambda i: i.is_soul(), sort=sort_by_level),
 ]  # yapf: disable
 
@@ -120,6 +130,7 @@ _ITEMS_SORT_ORDER = [
     [['ggr ']],
     [['m03 ', 'm04 ']],
     [['uniques']],
+    [['sets']],
 ]  # yapf: disable
 
 
@@ -168,9 +179,12 @@ def _extract_items(pages, filters):
         page['item_count'] = len(new_page_items)
 
     for item_filter in filters:
-        extracted[item_filter.name] = [item.data
-                                       for item in item_filter.sort(extracted[
-                                           item_filter.name])]
+        items = extracted[item_filter.name]
+        items = item_filter.sort(items)
+        if not (items and isinstance(items[0], (list, tuple))):
+            items = (items,)
+        extracted[item_filter.name] = [[item.data for item in item_row]
+                                       for item_row in items]
 
     return extracted
 
@@ -180,8 +194,13 @@ def _sort_items(items_by_filter, sort_order):
     for page in sort_order:
         sorted_items.append([])
         for row in page:
-            items = [items_by_filter.get(row_piece, []) for row_piece in row]
-            sorted_items[-1].append(list(itertools.chain(*items)))
+            sorted_items[-1].append([])
+            for row_piece in row:
+                items = items_by_filter.get(row_piece, [[]])
+                for item_row in items:
+                    sorted_items[-1][-1].extend(item_row)
+                    if len(items) > 1 and sorted_items[-1][-1]:
+                        sorted_items[-1].append([])
     return sorted_items
 
 
@@ -216,9 +235,8 @@ def _process_handle(handle, patch=False):
 
         _show_stash(stash)
         for item_type, items in sorted(extracted.items()):
-            Logger.info("Extracted items '{}' ({})", item_type, len(items))
-
-        from .pager import items_to_pages
+            Logger.info("Extracted items '{}' ({})", item_type, sum(
+                len(r) for r in items))
 
         sorted_items = _sort_items(extracted, _ITEMS_SORT_ORDER)
         pages = items_to_pages(sorted_items)
@@ -262,6 +280,15 @@ _EXTENDED_ITEM_SCHEMA = [
     SchemaPiece('guid', 32),
     SchemaPiece('drop_level', Integer(7)),
     SchemaPiece('quality', Integer(4)),
+    SchemaPiece('has_gfx', Integer(1)),
+    SchemaPiece('gfx', Integer(3), condition='has_gfx'),
+    SchemaPiece('has_class_info', Integer(1)),
+    SchemaPiece('class_info', Integer(11), condition='has_class_info'),
+    SchemaPiece('lo_qual_type', Integer(3), condition=lambda v: v['quality'] == 1),
+    SchemaPiece('hi_qual_type', Integer(3), condition=lambda v: v['quality'] == 3),
+    SchemaPiece('magic_prefix', Integer(11), condition=lambda v: v['quality'] == 4),
+    SchemaPiece('magic_suffix', Integer(11), condition=lambda v: v['quality'] == 4),
+    SchemaPiece('set_id', Integer(12), condition=lambda v: v['quality'] == 5),
 ]  # yapf: disable
 
 
