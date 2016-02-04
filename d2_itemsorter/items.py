@@ -61,11 +61,6 @@ def item_position(item):
         raise ValueError("Could not find position for item.")
 
 
-def item_quality_id(item):
-    data = _get_data_root(item)
-    return data.get('extended_info', {}).get('quality', NORMAL_QUALITY_ID)
-
-
 NORMAL_QUALITY_ID = 2
 MAGIC_QUALITY_ID = 4
 RARE_QUALITY_ID = 5
@@ -138,7 +133,9 @@ class Item(object):
         ext_info = self.extended_info()
         return ext_info['drop_level']
 
+    def info(self):
+        return get_item_type_info(self.type())
 
-def item_quality_id(item):
-    data = _get_data_root(item)
-    return data.get('extended_info', {}).get('quality', NORMAL_QUALITY_ID)
+    def size(self):
+        info = self.info()
+        return (info.width, info.height)

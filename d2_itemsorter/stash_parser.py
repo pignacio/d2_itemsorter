@@ -12,8 +12,8 @@ import time
 from pignacio_scripts.terminal import color
 import click
 
-from .items import (get_item_type_info, item_position, MISSING_ITEM_TYPES,
-                    QUALITY_NAMES, item_quality_id, Item, UNIQUE_QUALITY_ID)
+from .items import (MISSING_ITEM_TYPES, UNIQUE_QUALITY_ID, Item,
+                    get_item_type_info)
 from .logger import Logger
 from .pager import item_type_filter, ItemFilter
 from .schema import SchemaPiece, Integer, Chars, BinarySchema, Until
@@ -39,7 +39,7 @@ def _show_stash(stash):
                            key=lambda i: Item(i).position())):
                 gems = item_data['gems']
                 item = Item(item_data)
-                item_info = get_item_type_info(item.type())
+                item_info = item.info()
                 data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
                     d=item_info)
                 Logger.info("Item {}/{}: {} - {} [{}]".format(
@@ -97,10 +97,7 @@ _ITEMS_SORT_ORDER = [
     [['cm1 '], ['cm2 '], ['cm3 ']],
     [['amu ']],
     [['rin ']],
-    # TODO(irossi): find a way to sort all souls
-    [[
-        'souls',
-    ]],
+    [['souls']],
     [
         ['gsb ', 'gfb ', 'gcb '],
         ['gsg ', 'gfg ', 'gcg '],

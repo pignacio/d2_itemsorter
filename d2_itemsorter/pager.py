@@ -7,7 +7,7 @@ import logging
 
 from pignacio_scripts.namedtuple import namedtuple_with_defaults
 
-from .items import get_item_type_info, item_quality_id
+from .items import Item
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -37,32 +37,6 @@ def items_to_rows(items):
     return [row for _id, row in sorted(rows.items())]
 
 
-def rows_to_pages(rows):
-    pages = [[]]
-    current_x = current_y = next_y = 0
-    for row in rows:
-        for item in row:
-            info = get_item_type_info(item['item']['item_type'])
-            if info.width != '?':
-                width, height = info.width, info.height
-            else:
-                width, height = 2, 4
-            if current_x + width > _PAGE_WIDTH:
-                current_x = 0
-                current_y = next_y
-            if current_y + height > _PAGE_HEIGHT:
-                pages.append([])
-                current_x = current_y = next_y = 0
-            item['item']['position_x'] = current_x
-            item['item']['position_y'] = current_y
-            pages[-1].append(item)
-            current_x += width
-            next_y = max(next_y, current_y + height)
-        current_x = 0
-        current_y = next_y
-    return pages
-
-
 class Pager(object):
     def __init__(self):
         self._pages = [[]]
@@ -84,25 +58,24 @@ class Pager(object):
     def pages(self):
         return self._pages
 
-    def insert(self, item):
-        width, height = self._get_dimensions(item)
+    def insert(self, item_data):
+        width, height = self._get_dimensions(item_data)
         if self._current_x + width > _PAGE_WIDTH:
             self.new_row()
         if self._current_y + height > _PAGE_HEIGHT:
             self.new_page()
-        item['item']['position_x'] = self._current_x
-        item['item']['position_y'] = self._current_y
-        self._pages[-1].append(item)
+        item_data['item']['position_x'] = self._current_x
+        item_data['item']['position_y'] = self._current_y
+        self._pages[-1].append(item_data)
         self._current_x += width
         self._next_y = max(self._next_y, self._current_y + height)
 
     @staticmethod
-    def _get_dimensions(item):
-        info = get_item_type_info(item['item']['item_type'])
-        if info.width != '?':
-            return info.width, info.height
-        else:
+    def _get_dimensions(item_data):
+        width, height = Item(item_data).size()
+        if width == '?':
             return 2, 4
+        return width, height
 
 
 def items_to_pages(sorted_items):
