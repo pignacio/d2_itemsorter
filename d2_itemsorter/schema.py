@@ -62,13 +62,15 @@ class Until(object):
         self._patterns = patterns
 
     def from_bits(self, bits):
-        # TODO(irossi): This is VERY suboptimal. Maybe regexp?
-        value = ''
-        while bits and not any(bits.startswith(p) for p in self._patterns):
-            value += bits[0]
-            bits = bits[1:]
+        def get_index(pattern, bits):
+            try:
+                return bits.index(pattern)
+            except ValueError:
+                return len(bits)
 
-        return value, len(value)
+        min_index = min(get_index(p, bits) for p in self._patterns)
+
+        return bits[:min_index], min_index
 
     def to_bits(self, val):  # pylint: disable=no-self-use
         return val
