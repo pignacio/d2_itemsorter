@@ -4,42 +4,6 @@ id,name,width,height
 01d ,Andariel Doll,2,2
 05b ,Energy Pack,2,1
 07b ,Handgun Bullets,1,1
-1589,Gust Golem Soul (Nor),1,1
-1631,Lady Freeze Soul (Nor),1,1
-1748,Shadow Stalker Soul (Nor),1,1
-1920,Greenskin Soul (Nor),1,1
-1921,Goblin Soul (Nor),1,1
-1951,Snake Bowman Soul (Nor),1,1
-503 ,Burning Dead Soul (Nor),1,1
-504 ,Horror Soul (Nor),1,1
-505 ,Zombie Soul (Nor),1,1
-516 ,Blood Hawk Soul (Nor),1,1
-518 ,Cloud Stalker Soul (Nor),1,1
-519 ,Fallen Soul (Nor),1,1
-520 ,Carver Soul (Nor),1,1
-522 ,Dark One Soul (Nor),1,1
-528 ,Gargantuan Beast Soul (Nor),1,1
-537 ,Apparition Soul (Nor),1,1
-541 ,Dark Stalker Soul (Nor),1,1
-545 ,Rock Dweller Soul (Nor),1,1
-546 ,Jungle Hunter Soul (Nor),1,1
-554 ,Fallen Shaman Soul (Nor),1,1
-562 ,Razor Spine Soul (Nor),1,1
-563 ,Jungle Urchin Soul (Nor),1,1
-564 ,Sand Maggot Soul (Nor),1,1
-580 ,Saber Cat Soul (Nor),1,1
-590 ,Steel Weevil Soul (Nor),1,1
-595 ,Preserved Dead Soul (Nor),1,1
-634 ,Fetish Soul (Nor),1,1
-635 ,Flayer Soul (Nor),1,1
-644 ,Dark Spearwoman Soul (Nor),1,1
-652 ,Burning Dead Archer Soul (Nor),1,1
-674 ,Undead Fetish Soul (Nor),1,1
-732 ,Giant Urchin Soul (Nor),1,1
-764 ,Rat Man Soul (Nor),1,1
-765 ,Fetish Soul (Nor),1,1
-767 ,Soul Killer Soul (Nor),1,1
-768 ,Stygian Doll Soul (Nor),1,1
 amu ,Amulet,1,1
 c10 ,Inf Mana,1,1
 cb1 ,Chill Ball,1,1
@@ -55,59 +19,22 @@ ep6 ,Bag of Experience (32000),1,1
 ept ,Bag of Experience (1000),1,1
 fuk ,Burning Orb,1,1
 g01 ,Golem in a Bottle,1,1
-gcb ,Chipped Sapphire,1,1
-gcg ,Chipped Emerald,1,1
-gcr ,Chipped Ruby,1,1
-gcv ,Chipped Amethyst,1,1
-gcw ,Chipped Diamond,1,1
-gcy ,Chipped Topaz,1,1
-gfb ,Flawed Sapphire,1,1
-gfg ,Flawed Emerald,1,1
-gfr ,Flawed Ruby,1,1
-gfv ,Flawed Amethyst,1,1
-gfw ,Flawed Diamond,1,1
-gfy ,Flawed Topaz,1,1
 ggr ,Golem Gear,2,2
 gld1,Gold Bar 9k,1,1
 gld2,Gold Bar 10k,1,1
 gld3,Gold Bar 14k,1,1
 gld4,Gold Bar 16k,1,1
-gsb ,Sapphire,1,1
-gsg ,Emerald,1,1
-gsg ,Emerald,1,1
-gsr ,Ruby,1,1
-gsv ,Amethyst,1,1
-gsw ,Diamond,1,1
-gsy ,Topaz,1,1
 jew ,Jewel,1,1
 key ,Key,1,1
-lbl ,Sash,2,1
-lgl ,Leather Gloves,2,2
 m03 ,Blacksmith's Hammer,2,2
 m04 ,Anvil,2,1
-mag1,Enchanted Boots,2,2
 mbag,Money Bag,1,1
 mgat,Moster Gate,1,1
 opl ,Fulminating Potion,1,1
-r01 ,El rune,1,1
-r02 ,Eld rune,1,1
-r03 ,Tir rune,1,1
-r04 ,Nef rune,1,1
-r05 ,Eth rune,1,1
-r06 ,Ith rune,1,1
-r07 ,Tal rune,1,1
-r08 ,Ral rune,1,1
 rin ,Ring,1,1
 rvl ,Full Rejuvenation Potion,1,1
 rvs ,Rejuvenation Potion,1,1
 rvsl,Lesser Rejuvenation Potion,1,1
-scm ,Scimitar,1,3
-skc ,Chipped Skull,1,1
-skf ,Flawed Skull,1,1
-skl ,Flawless Skull,1,1
 spg ,Shining Poison,1,1
-spr ,Spear,2,4
-spt ,Spetum,2,4
-sst ,Short Staff,1,3
 tet ,Teeth,1,1
 trpg,Training Page,1,1

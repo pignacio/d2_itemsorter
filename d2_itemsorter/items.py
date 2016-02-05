@@ -8,6 +8,8 @@ import logging
 import os
 import pkg_resources
 
+from .logger import Logger
+
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 ItemTypeInfo = collections.namedtuple('ItemTypeInfo', ['id', 'name', 'width',
@@ -24,12 +26,22 @@ def _load_items(handle):
 
 
 def _load_all_items():
+    with Logger.add_level("Loading items"):
+        return __load_all_items()
+
+
+def __load_all_items():
     items = {}
     for fname in pkg_resources.resource_listdir(__name__, 'data/items'):
         fullname = os.path.join('data/items/', fname)
         inpu = pkg_resources.resource_stream(__name__, fullname)
+        Logger.info("Loading items from {}", fullname)
+        count = 0
         for item in _load_items(inpu):
+            count += 1
             items[item.id] = item
+        Logger.info("Loaded {} items", count)
+    Logger.info("Total items: {}", len(items))
     return items
 
 
