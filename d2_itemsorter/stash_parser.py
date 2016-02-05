@@ -29,7 +29,7 @@ _ITEM_HEADER = str_to_bits("\x4a\x4d")
 _GREEN_TICK = color.bright_green(u"[✓]")
 
 
-def _show_stash(stash):
+def _show_stash(stash, show_extended=False):
     Logger.info("Has {} pages", stash['page_count'])
     for page_no, page in enumerate(stash['pages']):
         with Logger.add_level("Page {}/{}", page_no + 1, stash['page_count']):
@@ -47,7 +47,7 @@ def _show_stash(stash):
                     ), data, item.quality()))
                 with Logger.add_level():
                     extended_info = item.extended_info()
-                    if extended_info:
+                    if show_extended and extended_info:
                         Logger.info("ExInfo: q:{} iLvl:{} setId:{}",
                                     extended_info['quality'],
                                     extended_info['drop_level'],
@@ -168,8 +168,6 @@ def _extract_items(pages, filters):
         for item_data in page['items']:
             item = Item(item_data)
             for item_filter in filters:
-                if item.type() == 'mbag':
-                    print item_filter.name, item_filter.filter(item)
                 if item_filter.filter(item):
                     extracted[item_filter.name].append(item)
                     break
@@ -221,24 +219,29 @@ def _process_handle(handle, patch=False):
                 fout.write(str_contents)
             Logger.info("Done writing backup")
 
+        Logger.info('Converting to binary string')
         binary_str = str_to_bits(str_contents)
 
+        Logger.info('Decoding...')
         parser = (BinarySchema(_SHARED_STASH_SCHEMA)
                   if binary_str.startswith(_SHARED_STASH_HEADER) else
                   BinarySchema(_PERSONAL_STASH_SCHEMA))
         stash = parser.decode(binary_str)
+        Logger.info('Decoded')
 
         _show_stash(stash)
 
         filters = _get_all_filters(_ITEMS_SORT_ORDER, _ITEM_FILTERS)
+        Logger.info('There are {} filter', len(filters))
         extracted = _extract_items(stash['pages'], filters)
-
-        _show_stash(stash)
         for item_type, items in sorted(extracted.items()):
-            Logger.info("Extracted items '{}' ({})", item_type, sum(
-                len(r) for r in items))
+            count = sum(len(r) for r in items)
+            if count:
+                Logger.info("Extracted items '{}' ({})", item_type, count)
 
+        Logger.info("Sorting items")
         sorted_items = _sort_items(extracted, _ITEMS_SORT_ORDER)
+        Logger.info("Paging items")
         pages = items_to_pages(sorted_items)
 
         empty_page = {
@@ -261,9 +264,10 @@ def _process_handle(handle, patch=False):
 
         _show_stash(stash)
 
+        Logger.info("Encoding...")
         binary = parser.encode(stash)
-        print len(binary)
         contents = bits_to_str(binary)
+        Logger.info("Encoded. Size: {} ({} bits)", len(contents), len(binary))
 
         if os.path.exists(handle.name) and patch:
             Logger.info('Patching: {}', handle.name)

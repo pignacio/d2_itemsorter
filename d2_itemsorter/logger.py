@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division
 
+import datetime
+
 from pignacio_scripts.terminal import color
 
 
@@ -36,8 +38,8 @@ class Logger(object):
 
     @classmethod
     def _log(cls, format_str, *args, **kwargs):
-        log_line = u"{}{}".format(cls._indent(), format_str.format(*args,
-                                                                   **kwargs))
+        log_line = u"[{}] {}{}".format(datetime.datetime.now(), cls._indent(),
+                                       format_str.format(*args, **kwargs))
         print log_line.replace('\n', '\n' + cls._indent()).encode('utf-8')
 
     @classmethod
