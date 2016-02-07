@@ -57,6 +57,32 @@ class Chars(object):
         return "".join(values)
 
 
+class NullTerminatedChars(object):
+    def __init__(self, char_size=8):
+        self._char_size = char_size
+
+    def from_bits(self, bits, **kwargs):
+        count = 0
+        null = "0" * self._char_size
+
+        def _next():
+            return bits[self._char_size * count:self._char_size * (count + 1)]
+
+        while _next() not in ('', null):
+            count += 1
+
+        values = [bits[i * self._char_size:(i + 1) * self._char_size][::-1]
+                  for i in xrange(count)]
+        chars = [chr(bits_to_int(v)) for v in values if v]
+        return "".join(chars), (count + 1) * self._char_size
+
+    def to_bits(self, chars, **kwargs):
+        values = [int_to_bits(
+            ord(c),
+            padding=self._char_size)[::-1] for c in chars]
+        return "".join(values) + "0" * self._char_size
+
+
 class Until(object):
     def __init__(self, patterns):
         self._patterns = patterns
