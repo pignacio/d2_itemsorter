@@ -12,8 +12,9 @@ import time
 from pignacio_scripts.terminal import color
 import click
 
-from .items import (MISSING_ITEM_TYPES, UNIQUE_QUALITY_ID, SET_QUALITY_ID, Item,
-                    get_item_type_info)
+from .items import (MISSING_ITEM_TYPES, UNIQUE_QUALITY_ID, SET_QUALITY_ID,
+                    Item, get_item_type_info, item_has_defense,
+                    item_has_quantity, item_has_durability)
 from .logger import Logger
 from .pager import item_type_filter, ItemFilter, items_to_pages
 from .props import PropertyList, MISSING_PROPERTY_IDS
@@ -280,14 +281,13 @@ def _process_handle(handle, patch=False):
             Logger.info('Writing to: /tmp/test.d2x', handle.name)
             fout.write(contents)
 
-# TODO(pignacio): populate this sets
-_ITEMS_WITH_DEFENSE = set()
-_ITEMS_WITH_DURABILITY = set()
-_ITEMS_WITH_QUANTITY = set()
+
 _ITEMS_WITHOUT_PROPERTIES = set()
+
 
 def _parent_type(values):
     return values[BinarySchema.PARENT_FIELD]['item_type']
+
 
 def _parent_quality(values):
     return values[BinarySchema.PARENT_FIELD]['extended_info']['quality']
@@ -297,19 +297,23 @@ _SPECIFIC_ITEM_SCHEMA = [
     SchemaPiece(
         'defense',
         Integer(11),
-        condition=lambda v: _parent_type(v) in _ITEMS_WITH_DEFENSE),
+        condition=lambda v: item_has_defense(_parent_type(v))),
     SchemaPiece(
         'max_durability',
-        Integer(8),
-        condition=lambda v: _parent_type(v) in _ITEMS_WITH_DURABILITY),
+        Integer(9),
+        condition=lambda v: item_has_durability(_parent_type(v))),
     SchemaPiece(
         'current_durability',
         Integer(9),
         condition='max_durability'),
     SchemaPiece(
+        'num_sockets',
+        Integer(4),
+        condition='..socketed'),
+    SchemaPiece(
         'quantity',
         Integer(9),
-        condition=lambda v: _parent_type(v) in _ITEMS_WITH_QUANTITY),
+        condition=lambda v: item_has_quantity(_parent_type(v))),
     SchemaPiece('has_set_prop_1', Integer(1),
                 condition=lambda v: _parent_quality(v) == 5),
     SchemaPiece('has_set_prop_2', Integer(1),

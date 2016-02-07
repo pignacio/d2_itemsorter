@@ -16,6 +16,34 @@ ItemTypeInfo = collections.namedtuple('ItemTypeInfo', ['id', 'name', 'width',
                                                        'height'])
 
 
+_FILES_WITH_DEFENSE = (
+    'data/items/armor',
+    'data/items/belt',
+    'data/items/boot',
+    'data/items/glove',
+)  # yapf: disable
+
+
+_FILES_WITH_DURABILITY = (
+    'data/items/armor',
+    'data/items/belt',
+    'data/items/boot',
+    'data/items/glove',
+    'data/items/weapon',
+)  # yapf: disable
+
+
+_FILES_WITH_QUANTITY = (
+    'data/items/stack',
+)  # yapf: disable
+
+_LOADED_ITEMS = None
+_KNOWN_ITEM_TYPES = {}
+_ITEMS_WITH_DEFENSE = set()
+_ITEMS_WITH_DURABILITY = set()
+_ITEMS_WITH_QUANTITY = set()
+
+
 def _load_items(handle):
     headers = handle.readline().strip().split(",")
     for line in handle:
@@ -25,9 +53,38 @@ def _load_items(handle):
         yield ItemTypeInfo(**values)
 
 
+def _get_items_from_file_prefixes(items_by_file, prefixes):
+    res = set()
+    for prefix in prefixes:
+        for fname, items in items_by_file.items():
+            if fname.startswith(prefix):
+                res.update(i.id for i in items)
+    return res
+
+
 def _load_all_items():
+    global _LOADED_ITEMS  # pylint: disable=global-statement
+    global _ITEMS_WITH_DEFENSE  # pylint: disable=global-statement
+    global _ITEMS_WITH_DURABILITY  # pylint: disable=global-statement
+    global _ITEMS_WITH_QUANTITY  # pylint: disable=global-statement
+    global _KNOWN_ITEM_TYPES  # pylint: disable=global-statement
+    if _LOADED_ITEMS is not None:
+        return
     with Logger.add_level("Loading items"):
-        return __load_all_items()
+        _LOADED_ITEMS = __load_all_items()
+
+        _ITEMS_WITH_DEFENSE = _get_items_from_file_prefixes(
+            _LOADED_ITEMS, _FILES_WITH_DEFENSE)
+        Logger.info(" - {} items have defense", len(_ITEMS_WITH_DEFENSE))
+        _ITEMS_WITH_DURABILITY = _get_items_from_file_prefixes(
+            _LOADED_ITEMS, _FILES_WITH_DURABILITY)
+        Logger.info(" - {} items have durability", len(_ITEMS_WITH_DURABILITY))
+        _ITEMS_WITH_QUANTITY = _get_items_from_file_prefixes(
+            _LOADED_ITEMS, _FILES_WITH_QUANTITY)
+        Logger.info(" - {} items have quantity", len(_ITEMS_WITH_QUANTITY))
+
+        _KNOWN_ITEM_TYPES = {i.id: i
+                             for v in _LOADED_ITEMS.values() for i in v}
 
 
 def __load_all_items():
@@ -36,26 +93,37 @@ def __load_all_items():
         fullname = os.path.join('data/items/', fname)
         inpu = pkg_resources.resource_stream(__name__, fullname)
         Logger.info("Loading items from {}", fullname)
-        count = 0
-        for item in _load_items(inpu):
-            count += 1
-            items[item.id] = item
-        Logger.info("Loaded {} items", count)
-    Logger.info("Total items: {}", len(items))
+        items[fullname] = tuple(_load_items(inpu))
+        Logger.info("Loaded {} items", len(items[fullname]))
+    Logger.info("Total items: {}", sum(len(v) for v in items.values()))
     return items
 
-
-_KNOWN_ITEM_TYPES = _load_all_items()
 
 MISSING_ITEM_TYPES = set()
 
 
 def get_item_type_info(item_type):
+    _load_all_items()
     try:
         return _KNOWN_ITEM_TYPES[item_type]
     except KeyError:
         MISSING_ITEM_TYPES.add(item_type)
         return ItemTypeInfo(item_type, '??????????', '?', '?')
+
+
+def item_has_defense(item_type):
+    _load_all_items()
+    return item_type in _ITEMS_WITH_DEFENSE
+
+
+def item_has_durability(item_type):
+    _load_all_items()
+    return item_type in _ITEMS_WITH_DURABILITY
+
+
+def item_has_quantity(item_type):
+    _load_all_items()
+    return item_type in _ITEMS_WITH_QUANTITY
 
 
 def _get_data_root(item):
