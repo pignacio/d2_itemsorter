@@ -17,11 +17,11 @@ class Integer(object):
     def __init__(self, size):
         self._size = size
 
-    def from_bits(self, bits):
+    def from_bits(self, bits, **kwargs):
         bits = bits[:self._size][::-1]
         return bits_to_int(bits), self._size
 
-    def to_bits(self, val):
+    def to_bits(self, val, **kwargs):
         if val >= 2**self._size:
             raise ValueError("Value does not fit in {} bits: {}".format(
                 self._size, val))
@@ -32,10 +32,10 @@ class Nothing(object):
     def __init__(self, size):
         self._size = size
 
-    def from_bits(self, bits):
+    def from_bits(self, bits, **kwargs):
         return bits[:self._size], self._size
 
-    def to_bits(self, val):
+    def to_bits(self, val, **kwargs):
         return val[:self._size]
 
 
@@ -44,13 +44,13 @@ class Chars(object):
         self._count = count
         self._char_size = char_size
 
-    def from_bits(self, bits):
+    def from_bits(self, bits, **kwargs):
         values = [bits[i * self._char_size:(i + 1) * self._char_size][::-1]
                   for i in xrange(self._count)]
         chars = [chr(bits_to_int(v)) for v in values if v]
         return "".join(chars), self._count * self._char_size
 
-    def to_bits(self, chars):
+    def to_bits(self, chars, **kwargs):
         values = [int_to_bits(
             ord(c),
             padding=self._char_size)[::-1] for c in chars]
@@ -61,7 +61,7 @@ class Until(object):
     def __init__(self, patterns):
         self._patterns = patterns
 
-    def from_bits(self, bits):
+    def from_bits(self, bits, **kwargs):
         def get_index(pattern, bits):
             try:
                 return bits.index(pattern)
@@ -72,7 +72,7 @@ class Until(object):
 
         return bits[:min_index], min_index
 
-    def to_bits(self, val):  # pylint: disable=no-self-use
+    def to_bits(self, val, **kwargs):  # pylint: disable=no-self-use
         return val
 
 
@@ -89,13 +89,15 @@ class ParseError(Exception):
 
 class BinarySchema(object):
     UNPARSED_FIELD = '__unparsed'
+    PARENT_FIELD = '__parent'
 
     def __init__(self, schema):
         self._schema = schema
 
-    def from_bits(self, binary_str):
+    def from_bits(self, binary_str, parent=None, **kwargs):
         position = 0
         res = collections.OrderedDict()
+        res[self.PARENT_FIELD] = parent
         for piece in self._schema:
             type_ = (Nothing(piece.type) if isinstance(piece.type, (int, long))
                      else piece.type)
@@ -115,7 +117,7 @@ class BinarySchema(object):
                         if position >= len(binary_str):
                             raise ParseError("EOD!")
                         bits = binary_str[position:]
-                        value, advance = type_.from_bits(bits)
+                        value, advance = type_.from_bits(bits, parent=res)
                         position += advance
                         values.append(value)
                     res[piece.field] = values
@@ -123,13 +125,16 @@ class BinarySchema(object):
                     if position >= len(binary_str):
                         raise ParseError("EOD!")
                     bits = binary_str[position:]
-                    res[piece.field], advance = type_.from_bits(bits)
+                    res[piece.field], advance = type_.from_bits(bits, parent=res)
                     position += advance
 
+        del res[self.PARENT_FIELD]
         return res, position
 
-    def to_bits(self, values):
+    def to_bits(self, values, parent=None, **kwargs):
         res = ''
+        values = collections.OrderedDict(values)
+        values[self.PARENT_FIELD] = parent
         for piece in self._schema:
             type_ = (Nothing(piece.type) if isinstance(piece.type, (int, long))
                      else piece.type)
@@ -144,9 +149,9 @@ class BinarySchema(object):
                             "Unexpected size for a multiple: {} (Expected {})",
                             len(values[piece.field]), count)
                     for value in values[piece.field]:
-                        res += type_.to_bits(value)
+                        res += type_.to_bits(value, parent=values)
                 else:
-                    res += type_.to_bits(values[piece.field])
+                    res += type_.to_bits(values[piece.field], parent=values)
         return res
 
     def decode(self, binary_str):
@@ -160,11 +165,13 @@ class BinarySchema(object):
         res = self.to_bits(values)
         return res + values.get(self.UNPARSED_FIELD, '')
 
-    @staticmethod
-    def _should_parse(piece, values):
+    @classmethod
+    def _should_parse(cls, piece, values):
         if piece.condition is None:
             return True
         elif isinstance(piece.condition, basestring):
+            if piece.condition.startswith('..'):
+                return values[cls.PARENT_FIELD].get(piece.condition[2:])
             return values.get(piece.condition)
         else:
             return piece.condition(values)
