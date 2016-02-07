@@ -280,6 +280,49 @@ def _process_handle(handle, patch=False):
             Logger.info('Writing to: /tmp/test.d2x', handle.name)
             fout.write(contents)
 
+# TODO(pignacio): populate this sets
+_ITEMS_WITH_DEFENSE = set()
+_ITEMS_WITH_DURABILITY = set()
+_ITEMS_WITH_QUANTITY = set()
+_ITEMS_WITHOUT_PROPERTIES = set()
+
+def _parent_type(values):
+    return values[BinarySchema.PARENT_FIELD]['item_type']
+
+def _parent_quality(values):
+    return values[BinarySchema.PARENT_FIELD]['extended_info']['quality']
+
+
+_SPECIFIC_ITEM_SCHEMA = [
+    SchemaPiece(
+        'defense',
+        Integer(11),
+        condition=lambda v: _parent_type(v) in _ITEMS_WITH_DEFENSE),
+    SchemaPiece(
+        'max_durability',
+        Integer(8),
+        condition=lambda v: _parent_type(v) in _ITEMS_WITH_DURABILITY),
+    SchemaPiece(
+        'current_durability',
+        Integer(9),
+        condition='max_durability'),
+    SchemaPiece(
+        'quantity',
+        Integer(9),
+        condition=lambda v: _parent_type(v) in _ITEMS_WITH_QUANTITY),
+    SchemaPiece('has_set_prop_1', Integer(1),
+                condition=lambda v: _parent_quality(v) == 5),
+    SchemaPiece('has_set_prop_2', Integer(1),
+                condition=lambda v: _parent_quality(v) == 5),
+    SchemaPiece('has_set_prop_3', Integer(1),
+                condition=lambda v: _parent_quality(v) == 5),
+    SchemaPiece('has_set_prop_4', Integer(1),
+                condition=lambda v: _parent_quality(v) == 5),
+    SchemaPiece('has_set_prop_5', Integer(1),
+                condition=lambda v: _parent_quality(v) == 5),
+    SchemaPiece('properties', PropertyList(),
+                condition=lambda v: _parent_type(v) not in _ITEMS_WITHOUT_PROPERTIES),
+]  # yapf: disable
 
 _EXTENDED_ITEM_SCHEMA = [
     SchemaPiece('gem_count', Integer(3)),
@@ -361,6 +404,10 @@ _ITEM_DATA_SCHEMA = [
         condition=lambda v: not v['simple']),
     SchemaPiece('has_random_pad', Integer(1)),
     SchemaPiece('random_pad', Integer(96), condition='has_random_pad'),
+    SchemaPiece(
+        'specific_info',
+        BinarySchema(_SPECIFIC_ITEM_SCHEMA),
+        condition=lambda v: not v['simple']),
     SchemaPiece('tail', Until([_PAGE_HEADER, _ITEM_HEADER]))
 ]  # yapf: disable
 
