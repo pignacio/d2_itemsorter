@@ -465,3 +465,6 @@ def parse(filename, debug, patch):
 
     if MISSING_ITEM_TYPES:
         print "Missing item types:", repr(sorted(MISSING_ITEM_TYPES))
+
+    if MISSING_PROPERTY_IDS:
+        print "Missing property ids:", repr(sorted(MISSING_PROPERTY_IDS))
