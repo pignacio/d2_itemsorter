@@ -113,7 +113,7 @@ _PROPERTIES = {p.id: p for p in [
 
 _LIST_TERMINATOR = 0x1ff
 
-MISSING_PROPERTY_IDS = set()
+MISSING_PROPERTY_IDS = collections.Counter()
 
 
 class PropertyList(object):
@@ -132,7 +132,7 @@ class PropertyList(object):
             try:
                 prop_def = self._properties[prop_id]
             except KeyError:
-                MISSING_PROPERTY_IDS.add(prop_id)
+                MISSING_PROPERTY_IDS[prop_id] += 1
                 Logger.warn('Unknown property ID: "{}"', prop_id)
                 position -= advanced
                 break
