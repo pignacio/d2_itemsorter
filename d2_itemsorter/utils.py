@@ -8,12 +8,16 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def bits_to_int(bits):
-    if not (isinstance(bits, basestring) and bits and all(b in ('0',
-                                                                '1', )
-                                                          for b in bits)):
-        raise ValueError(
-            "bits must be a non-empty string of 0s an 1s: '{}'".format(bits))
-    return eval('0b' + bits)  # pylint: disable=eval-used
+    value = 0
+    for index in xrange(len(bits)):
+        value *= 2
+        bit = bits[index]
+        if bit == '1':
+            value += 1
+        elif bit != '0':
+            raise ValueError(
+                "Invalid bit at index {}: {} (Must be 0/1)".format(index, bit))
+    return value
 
 
 def int_to_bits(value, padding=8):
