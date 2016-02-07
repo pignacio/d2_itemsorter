@@ -148,12 +148,12 @@ _ITEMS_SORT_ORDER = [
     [['rin ']],
     [['souls']],
     [
-        ['gsb ', 'gfb ', 'gcb '],
-        ['gsg ', 'gfg ', 'gcg '],
-        ['gsr ', 'gfr ', 'gcr '],
-        ['gsv ', 'gfv ', 'gcv '],
-        ['gsw ', 'gfw ', 'gcw '],
-        ['gsy ', 'gfy ', 'gcy '],
+        ['glb ', 'gsb ', 'gfb ', 'gcb '],
+        ['glg ', 'gsg ', 'gfg ', 'gcg '],
+        ['glr ', 'gsr ', 'gfr ', 'gcr '],
+        ['glv ', 'gsv ', 'gfv ', 'gcv '],
+        ['glw ', 'gsw ', 'gfw ', 'gcw '],
+        ['gly ', 'gsy ', 'gfy ', 'gcy '],
         ['skl ', 'skf ', 'skc '],
     ],
     [
