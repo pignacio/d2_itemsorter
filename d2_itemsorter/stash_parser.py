@@ -3,9 +3,11 @@
 from __future__ import absolute_import, division
 
 import collections
+import cProfile
 import itertools
 import logging
 import os
+import pstats
 import sys
 import time
 
@@ -460,12 +462,26 @@ _SHARED_STASH_SCHEMA = [
 @click.argument('filename', type=click.File('rb'))
 @click.option('--debug', is_flag=True, help='Turn on debug mode')
 @click.option('--patch', is_flag=True, help='Patch the file in place')
-def parse(filename, debug, patch):
+@click.option('--profile', is_flag=True, help='Profile the execution')
+def parse(filename, debug, patch, profile):
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(stream=sys.stdout, level=level)
     logging.debug("PAGE: %s, %s", _PAGE_HEADER, bits_to_str(_PAGE_HEADER))
     logging.debug("ITEM: %s, %s", _ITEM_HEADER, bits_to_str(_ITEM_HEADER))
+
+    if profile:
+        profiler = cProfile.Profile()
+        profiler.enable()
+    else:
+        profiler = None
+
     _process_handle(filename, patch=patch)
+
+    if profiler:
+        profiler.disable()
+        stats = pstats.Stats(profiler, stream=sys.stdout).sort_stats('cumulative')
+        stats.print_stats()
+
 
     if MISSING_ITEM_TYPES:
         print "Missing item types:", repr(sorted(MISSING_ITEM_TYPES))
