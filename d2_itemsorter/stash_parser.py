@@ -32,9 +32,11 @@ _PAGE_HEADER = str_to_bits("\x53\x54\x00\x4a\x4d")
 _ITEM_HEADER = str_to_bits("\x4a\x4d")
 
 _GREEN_TICK = color.bright_green(u"[✓]")
+_RED_CROSS = color.bright_red(u"[✗]")
 
+_ITEM_PARSES = collections.Counter()
 
-def _show_stash(stash, show_extended=False):
+def _show_stash(stash, show_extended=True):
     Logger.info("Has {} pages", stash['page_count'])
     for page_no, page in enumerate(stash['pages']):
         with Logger.add_level("Page {}/{}", page_no + 1, stash['page_count']):
@@ -47,16 +49,48 @@ def _show_stash(stash, show_extended=False):
                 item_info = item.info()
                 data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
                     d=item_info)
-                Logger.info("Item {}/{}: {} - {} [{}]".format(
-                    item_no + 1, page['item_count'], item.position(
-                    ), data, item.quality()))
+                tail = item_data['item']['tail']
+                tail_is_padding = not tail or (len(tail) < 8 and
+                                               set(tail) == {'0'})
+                _ITEM_PARSES[tail_is_padding] += 1
+                mark = _GREEN_TICK if tail_is_padding else _RED_CROSS
+                Logger.info(u"Item {}/{}: {} - {} [{}] Tail: {}{}", item_no + 1,
+                            page['item_count'], item.position(), data,
+                            item.quality(), len(tail), mark)
+                if len(tail) < 0 and not tail_is_padding:
+                    Logger.info("Tail: {}", tail)
                 with Logger.add_level():
                     extended_info = item.extended_info()
-                    if show_extended and extended_info:
-                        Logger.info("ExInfo: q:{} iLvl:{} setId:{}",
+                    specific_info = item_data['item'].get('specific_info', {})
+                    if show_extended and extended_info and not tail_is_padding:
+                        Logger.info("ExInfo: q:{} iLvl:{} setId:{}, mag1:{}, mag2:{}",
                                     extended_info['quality'],
                                     extended_info['drop_level'],
-                                    extended_info.get('set_id'))
+                                    extended_info.get('set_id'),
+                                    extended_info.get('magic_prefix'),
+                                    extended_info.get('magic_suffix'),
+                                   )
+                        Logger.info("SpecInfo: Def:{} Dur:{}/{} Qty:{} Sock:{}",
+                                    specific_info.get('defense'),
+                                    specific_info.get('current_durability'),
+                                    specific_info.get('max_durability'),
+                                    specific_info.get('quantity'),
+                                    specific_info.get('num_sockets'),
+                                   )
+                        props = specific_info.get('properties')
+                        if props is not None:
+                            with Logger.add_level('Properties:'):
+                                for prop in props:
+                                    Logger.info("- {}", prop.as_game_str())
+                            for x in xrange(1, 6):
+                               set_props = specific_info.get('set_props_{}'.format(x))
+                               if set_props is not None:
+                                   with Logger.add_level("Set properties #{}", x):
+                                        for prop in set_props:
+                                            Logger.info("- {}", prop.as_game_str())
+
+                            if not tail_is_padding:
+                                Logger.info("Tail: {}", tail)
                     if gems:
                         with Logger.add_level('Has {} gems', len(gems)):
                             for gem_no, gem in enumerate(gems):
@@ -185,7 +219,7 @@ def _extract_items(pages, filters):
         items = extracted[item_filter.name]
         items = item_filter.sort(items)
         if not (items and isinstance(items[0], (list, tuple))):
-            items = (items,)
+            items = (items, )
         extracted[item_filter.name] = [[item.data for item in item_row]
                                        for item_row in items]
 
