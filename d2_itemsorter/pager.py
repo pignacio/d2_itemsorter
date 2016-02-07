@@ -15,8 +15,18 @@ _PAGE_WIDTH = 10
 _PAGE_HEIGHT = 10
 
 
+def default_sort_key(item):
+    return (
+        # 1. Sort by quality
+        -item.quality_id(),
+        # 2.a. Magic items: most affixes first, then sort by affix
+        -len([affix for affix in item.magic_affixes() if affix]),
+        item.magic_affixes(),
+    )
+
+
 def default_sort(items):
-    return sorted(items, key=lambda i: -i.quality_id())
+    return sorted(items, key=default_sort_key)
 
 
 ItemFilter = namedtuple_with_defaults('ItemFilter',

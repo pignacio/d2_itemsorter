@@ -223,3 +223,7 @@ class Item(object):
     def size(self):
         info = self.info()
         return (info.width, info.height)
+
+    def magic_affixes(self):
+        ext_info = self.extended_info()
+        return (ext_info.get('magic_prefix'), ext_info.get('magic_suffix'), )
