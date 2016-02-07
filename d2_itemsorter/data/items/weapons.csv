@@ -1,4 +1,5 @@
 id,name,width,height
+clw ,Claw,1,3
 scm ,Scimitar,1,3
 spr ,Spear,2,4
 spt ,Spetum,2,4

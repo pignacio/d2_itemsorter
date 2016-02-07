@@ -33,6 +33,7 @@ _PROPERTIES = {p.id: p for p in [
     PropertyDef(19, [10], '{:+d} to Attack Rating'),
     PropertyDef(22, [9], '{:+d} to Maximum Damage'),
     PropertyDef(24, [9], '{:+d} to Maximum Damage'),
+    PropertyDef(31, [11], '{:+d} Defense', offsets=[10]),
     PropertyDef(34, [16], 'Damage Reduced by {:d}'),
     PropertyDef(35, [16], 'Magic Damage Reduced by {:d}'),
     PropertyDef(37, [8], 'Magic Resist {:+d}%', offsets=[50]),
@@ -41,18 +42,21 @@ _PROPERTIES = {p.id: p for p in [
     PropertyDef(43, [8], 'Cold Resist {:+d}%', offsets=[50]),
     PropertyDef(45, [8], 'Poison Resist {:+d}%', offsets=[50]),
     PropertyDef(60, [8], '{:d}% Life Stolen per Hit', offsets=[50]),
-    PropertyDef(74, [16], '+{:d} Replenish Life'),  # TODO: fix this, 3 shows as 3003
+    PropertyDef(74, [16], '+{:d} Replenish Life', offsets=[3000]),
     PropertyDef(79, [13], '{:d}% Extra Gold from Monsters'),
     PropertyDef(80, [13], '{:d}% Better Chance of Getting Magic Items'),
     PropertyDef(85, [12], '{:d}% to Experience Gained', offsets=[50]),
     PropertyDef(89, [5], '{:+d} to Light Radius', offsets=[12]),
+    PropertyDef(96, [9], '{:+d}% Faster Run/Walk', offsets=[100]),
     PropertyDef(105, [9], '{:+d}% Faster Cast Rate', offsets=[50]),
     PropertyDef(109, [9], 'Shorter Curse Duration {:+d}%', offsets=[100]),
     PropertyDef(110, [8], 'Poison Length Reduced by {:+d}%', offsets=[20]),
     PropertyDef(118, [1], 'Half Freeze Duration'),
     PropertyDef(138, [7], '{:+d} to Mana after each Kill'),
+    PropertyDef(141, [8], '{:d}% Deadly Strike'),
     PropertyDef(160, [10], '{:+d} to Maximum Damage'),
     PropertyDef(357, [12], '{:+d}% to Magic Skill Damage', offsets=[50]),
+    PropertyDef(367, [8], 'Dexterity bonus {:d}%', offsets=[10]),
 ]}  # yapf: disable
 
 _LIST_TERMINATOR = 0x1ff

@@ -1,2 +1,4 @@
 id,name,width,height
-lgl ,Leather Gloves,2,2
+lbl ,Sash,2,1
+vbl ,Light Belt,2,1
+mbl ,Belt,2,1
