@@ -359,6 +359,8 @@ _ITEM_DATA_SCHEMA = [
         'extended_info',
         BinarySchema(_EXTENDED_ITEM_SCHEMA),
         condition=lambda v: not v['simple']),
+    SchemaPiece('has_random_pad', Integer(1)),
+    SchemaPiece('random_pad', Integer(96), condition='has_random_pad'),
     SchemaPiece('tail', Until([_PAGE_HEADER, _ITEM_HEADER]))
 ]  # yapf: disable
 
