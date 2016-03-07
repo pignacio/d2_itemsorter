@@ -499,7 +499,7 @@ _EXTENDED_ITEM_SCHEMA = [
     SchemaPiece('has_gfx', Integer(1)),
     SchemaPiece('gfx', Integer(3), condition='has_gfx'),
     SchemaPiece('has_class_info', Integer(1)),
-    SchemaPiece('class_info', Integer(11), condition='has_class_info'),
+    SchemaPiece('class_info', 11, condition='has_class_info'),
     SchemaPiece('lo_qual_type', Integer(3),
                 condition=lambda v: v['quality'] == 1),
     SchemaPiece('hi_qual_type', Integer(3),
