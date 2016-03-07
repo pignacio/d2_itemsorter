@@ -148,7 +148,7 @@ class BinarySchema(object):
                         values.append(value)
                     res[piece.field] = values
                 else:
-                    if position >= len(binary_str):
+                    if position > len(binary_str):
                         raise ParseError("EOD!")
                     bits = binary_str[position:]
                     res[piece.field], advance = type_.from_bits(bits, parent=res)
