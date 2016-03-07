@@ -423,7 +423,7 @@ def _process_handle(handle, patch=False):
         stash['pages'] = new_pages
         stash['page_count'] = len(new_pages)
 
-        _show_stash(stash)
+        # _show_stash(stash)
 
         Logger.info("Encoding...")
         binary = parser.encode(stash)
