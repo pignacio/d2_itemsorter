@@ -1,8 +1,19 @@
 id,name
-36,Fire Bolt
+12,Multiple Shot
+36,Fire Bolt (Sorceress Only)
+38,Charged Bolt (Sorceress Only)
+48,Traps (Assassin Only)
+66,Amplify Damage
+67,Teeth
 72,Weaken
 73,Poison Dagger
-96,Sacrifice (Paladin  only)
+96,Sacrifice (Paladin Only)
+147,Frenzy
+237,Summon Dire Wolf
+374,Poison Mastery (Necromancer Only)
 429,Bone Armor
+453,Succubus Bolt
+456,Quill Shot
 611,Blow Dart
 637,Monster Gate Call
+682,Summon Ice Golem
