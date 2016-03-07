@@ -1,3 +1,7 @@
 id,name,width,height
+brs ,Breast Plate,2,3
+chn ,Chain Mail,2,3
 ck1 ,Thief Cloak,2,3
 ltp ,Light Plate,2,3
+plt ,Plate Mail,2,3
+spl ,Splint Mail,2,3

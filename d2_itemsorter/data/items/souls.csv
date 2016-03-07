@@ -1,19 +1,26 @@
 id,name,width,height
 1589,Gust Golem Soul (Nor),1,1
 1631,Lady Freeze Soul (Nor),1,1
+1661,Ghost Wolf Soul (Nor),1,1
+1688,Hell Locust Soul (Nor),1,1
 1748,Shadow Stalker Soul (Nor),1,1
+1861,Titan Soul (Nor),1,1
+1866,Icky Face Soul (Nor),1,1
 1920,Greenskin Soul (Nor),1,1
 1921,Goblin Soul (Nor),1,1
 1951,Snake Bowman Soul (Nor),1,1
+1979,Red Storm Soul (Nor),1,1
 503 ,Burning Dead Soul (Nor),1,1
 504 ,Horror Soul (Nor),1,1
 505 ,Zombie Soul (Nor),1,1
+509 ,Plague Bearer Soul (Nor),1,1
 516 ,Blood Hawk Soul (Nor),1,1
 518 ,Cloud Stalker Soul (Nor),1,1
 519 ,Fallen Soul (Nor),1,1
 520 ,Carver Soul (Nor),1,1
 522 ,Dark One Soul (Nor),1,1
 528 ,Gargantuan Beast Soul (Nor),1,1
+536 ,Specter Soul (Nor),1,1
 537 ,Apparition Soul (Nor),1,1
 541 ,Dark Stalker Soul (Nor),1,1
 545 ,Rock Dweller Soul (Nor),1,1
@@ -22,16 +29,31 @@ id,name,width,height
 562 ,Razor Spine Soul (Nor),1,1
 563 ,Jungle Urchin Soul (Nor),1,1
 564 ,Sand Maggot Soul (Nor),1,1
+576 ,Tomb Creeper Soul (Nor),1,1
 580 ,Saber Cat Soul (Nor),1,1
+585 ,Plague Bugs Soul (Nor),1,1
 590 ,Steel Weevil Soul (Nor),1,1
 595 ,Preserved Dead Soul (Nor),1,1
+605 ,Winged Nightmare Soul (Nor),1,1
 634 ,Fetish Soul (Nor),1,1
 635 ,Flayer Soul (Nor),1,1
 644 ,Dark Spearwoman Soul (Nor),1,1
+647 ,Black Lancer Soul (Nor),1,1
 652 ,Burning Dead Archer Soul (Nor),1,1
 674 ,Undead Fetish Soul (Nor),1,1
+677 ,Undead Stygian Doll Soul (Nor),1,1
+680 ,Zakarumite Soul (Nor),1,1
+682 ,Zealot Soul (Nor),1,1
+692 ,Summoner Soul (Nor),1,1
+724 ,Maw Fiend Soul (Nor),1,1
 732 ,Giant Urchin Soul (Nor),1,1
+755 ,Burning Dead Mage Soul (Nor),1,1
 764 ,Rat Man Soul (Nor),1,1
 765 ,Fetish Soul (Nor),1,1
+766 ,Flayer Soul (Nor),1,1
 767 ,Soul Killer Soul (Nor),1,1
 768 ,Stygian Doll Soul (Nor),1,1
+788 ,Enslaved Soul (Nor),1,1
+798 ,Stygian Harlot Soul (Nor),1,1
+802 ,Vile Witch Soul (Nor),1,1
+830 ,Night Lord Soul (Nor),1,1

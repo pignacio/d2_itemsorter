@@ -1,28 +1,54 @@
 id,name,width,height
+2ax ,Double Axe,2,3
+2hs ,Two Handed Sword,1,4
+9cl ,Cudgel,1,3
 axe ,Axe,2,3
+axf ,Hatchet Hands,1,3
+bld ,Blade,1,3
+brn ,Brandistock,2,4
 bsd ,Broad Sword,2,3
 bst ,Battle Staff,1,4
+bsw ,Bastard Sword,1,4
 btl ,Blade Talons,1,3
+btx ,Battle Axe,2,3
 bwn ,Bone Wand,1,2
 cbw ,Composite Bow,2,3
 clb ,Club,1,3
 clw ,Claw,1,3
+crs ,Cristal Sword,2,3
 cst ,Gnarled Staff,1,4
+dir ,Dirk,1,2
+gis ,Giant Sword,1,4
+fla ,Flail,2,3
+flc ,Falchion,1,3
+h21 ,Handgun,2,2
 hbw ,Hunter's Bow,2,3
+hxb ,Heavy Crossbow,2,4
+ktr ,Katar,1,3
 lbw ,Long Bow,2,4
+ls0 ,Laser Pistol,2,2
+lsd ,Long Sword,2,3
 lst ,Long Staff,1,4
 lxb ,Light Crossbow,2,3
+mac ,Mace,1,3
+mau ,Maul,2,4
+mgn ,Machine Gun,2,3
 mpi ,Military Pick,2,3
 mst ,Morning Star,1,3
 ob1 ,Eagle Orb,1,2
 ob2 ,Sacred Globe,1,2
 ob3 ,Smoked Sphere,1,2
+ob5 ,Jared's Stone,1,3
 sbr ,Sabre,1,3
 scm ,Scimitar,1,3
+stn ,Shotgun,2,3
 spc ,Spiked Club,1,3
 spr ,Spear,2,4
 spt ,Spetum,2,4
 sst ,Short Staff,1,3
 swd ,Spectral Sword,1,3
+wax ,War Axe,2,3
+wsd ,War Sword,1,3
 wnd ,Wand,1,2
 wrb ,Wrist Blade,1,3
+wst ,War Staff,2,4
