@@ -86,13 +86,11 @@ def _show_stash(stash, show_extended=True):
                 tail = item_data['item']['tail']
                 tail_is_padding = not tail or (len(tail) < 8 and
                                                set(tail) == {'0'})
-                _ITEM_PARSES[tail_is_padding] += 1
+
                 mark = _GREEN_TICK if tail_is_padding else _RED_CROSS
                 Logger.info(u"Item {}/{}: {} - {} [{}] Tail: {}{}", item_no + 1,
                             page['item_count'], item.position(), data,
                             item.quality(), len(tail), mark)
-                if len(tail) < 0 and not tail_is_padding:
-                    Logger.info("Tail: {}", tail)
                 with Logger.add_level():
                     extended_info = item.extended_info()
                     specific_info = item_data['item'].get('specific_info', {})
@@ -111,6 +109,7 @@ def _show_stash(stash, show_extended=True):
                                     specific_info.get('quantity'),
                                     specific_info.get('num_sockets'),
                                    )
+                        Logger.info("SpecInfo Origin: {}", specific_info['__origin'])
                         proplist = specific_info.get('properties')
                         if proplist is not None:
                             with Logger.add_level('Properties:'):
@@ -125,6 +124,10 @@ def _show_stash(stash, show_extended=True):
 
                             if not tail_is_padding:
                                 Logger.info("Tail: {}", tail)
+                                Logger.info("First prop id: {}, values: {}",
+                                            bits_to_int(tail[:9][::-1]),
+                                            [bits_to_int(tail[9:10 + i][::-1])
+                                             for i in xrange(12)])
                     if gems:
                         with Logger.add_level('Has {} gems', len(gems)):
                             for gem_no, gem in enumerate(gems):
@@ -135,7 +138,6 @@ def _show_stash(stash, show_extended=True):
                                     gem_no + 1,
                                     len(gem),
                                     d=gem_info)
-
 
 def _get_all_items_from_stash(stash):
     for page in stash['pages']:
