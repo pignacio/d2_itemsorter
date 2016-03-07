@@ -229,7 +229,7 @@ def sort_uniques(items):
 
 
 def sort_by_level(items):
-    return sorted(items, key=lambda i: i.level())
+    return sorted(items, key=lambda i: (i.level(), i.type()))
 
 
 def is_valid_set_item(item):
