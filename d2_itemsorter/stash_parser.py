@@ -648,6 +648,10 @@ def parse(filename, debug, patch, profile):
         print "Missing item types:", repr(sorted(MISSING_ITEM_TYPES))
 
     if MISSING_PROPERTY_IDS:
-        print "Missing property ids:", repr(sorted(MISSING_PROPERTY_IDS.items())), repr(MISSING_PROPERTY_IDS.most_common())
+        print "Missing property ids:"
+        print repr(sorted(MISSING_PROPERTY_IDS.items()))
+        print repr(MISSING_PROPERTY_IDS.most_common())
 
     print "Full parses?: ", _ITEM_PARSES
+    import pprint
+    print "Failed parses: ", pprint.pprint(_FAILED_PARSES.most_common())
