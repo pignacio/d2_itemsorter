@@ -14,6 +14,7 @@ PropertyDef = namedtuple_with_defaults('PropertyDef',
                                         'offsets'],
                                        defaults={'offsets': None})
 _Property = collections.namedtuple('Property', ['definition', 'values'])
+PropList = collections.namedtuple('PropList', ['properties', 'terminated'])
 
 
 class Property(_Property):
@@ -124,10 +125,12 @@ class PropertyList(object):
     def from_bits(self, bits, **kwargs):
         position = 0
         properties = []
+        terminated = False
         while True:
             prop_id, advanced = Integer(9).from_bits(bits[position:])
             position += advanced
             if prop_id == self._terminator:
+                terminated = True
                 break
             try:
                 prop_def = self._properties[prop_id]
@@ -140,17 +143,17 @@ class PropertyList(object):
                 values, advanced = self._get_fields_schema(prop_def).from_bits(
                     bits[position:])
                 position += advanced
-                values = [values[i] for i in xrange(len(values))]
+                values = [values[i] for i in xrange(len(prop_def.field_sizes))]
                 if prop_def.offsets is not None:
                     values = [v - prop_def.offsets[i]
                               for i, v in enumerate(values)]
                 properties.append(Property(prop_def, values))
 
-        return properties, position
+        return PropList(properties, terminated), position
 
-    def to_bits(self, properties, **kwargs):
+    def to_bits(self, proplist, **kwargs):
         res = ''
-        for prop in properties:
+        for prop in proplist.properties:
             res += Integer(9).to_bits(prop.definition.id)
             values = prop.values
             if prop.definition.offsets:
@@ -159,7 +162,8 @@ class PropertyList(object):
             res += self._get_fields_schema(prop.definition).to_bits(
                 {i: v
                  for i, v in enumerate(values)})
-        res += Integer(9).to_bits(self._terminator)
+        if proplist.terminated:
+            res += Integer(9).to_bits(self._terminator)
         return res
 
     @staticmethod

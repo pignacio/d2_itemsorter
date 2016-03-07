@@ -35,6 +35,8 @@ _GREEN_TICK = color.bright_green(u"[✓]")
 _RED_CROSS = color.bright_red(u"[✗]")
 
 _ITEM_PARSES = collections.Counter()
+                        proplist = specific_info.get('properties')
+                        if proplist is not None:
 
 def _show_stash(stash, show_extended=True):
     Logger.info("Has {} pages", stash['page_count'])
@@ -77,16 +79,16 @@ def _show_stash(stash, show_extended=True):
                                     specific_info.get('quantity'),
                                     specific_info.get('num_sockets'),
                                    )
-                        props = specific_info.get('properties')
-                        if props is not None:
+                        proplist = specific_info.get('properties')
+                        if proplist is not None:
                             with Logger.add_level('Properties:'):
-                                for prop in props:
+                                for prop in proplist.properties:
                                     Logger.info("- {}", prop.as_game_str())
                             for x in xrange(1, 6):
-                               set_props = specific_info.get('set_props_{}'.format(x))
-                               if set_props is not None:
+                               set_proplist = specific_info.get('set_props_{}'.format(x))
+                               if set_proplist is not None:
                                    with Logger.add_level("Set properties #{}", x):
-                                        for prop in set_props:
+                                        for prop in set_proplist.properties:
                                             Logger.info("- {}", prop.as_game_str())
 
                             if not tail_is_padding:

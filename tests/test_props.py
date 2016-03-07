@@ -7,7 +7,7 @@ import logging
 
 from pignacio_scripts.testing import TestCase
 
-from d2_itemsorter.props import PropertyList, PropertyDef, Property
+from d2_itemsorter.props import PropertyList, PropertyDef, Property, PropList
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -27,11 +27,12 @@ class PropertyListTests(TestCase):
     def test_empty_from_bits(self):
         props, advanced = self.prop_list.from_bits('111111111')
 
-        self.assertEqual(props, [])
+        self.assertEqual(props.properties, [])
+        self.assertTrue(props.terminated)
         self.assertEqual(advanced, 9)
 
     def test_empty_to_bits(self):
-        bits = self.prop_list.to_bits([])
+        bits = self.prop_list.to_bits(PropList(properties=[], terminated=True))
         self.assertEqual(bits, '111111111')
 
     def test_single_field_from_bits(self):
@@ -41,13 +42,16 @@ class PropertyListTests(TestCase):
                 )
         props, advanced = self.prop_list.from_bits(bits)
 
-        self.assertListEqual(props,
+        self.assertListEqual(props.properties,
                              [Property(definition=_TEST_PROPERTIES[1],
                                        values=[134])])
+        self.assertTrue(props.terminated)
         self.assertEqual(advanced, 26)
 
     def test_single_field_to_bits(self):
-        props = [Property(definition=_TEST_PROPERTIES[1], values=[134])]
+        props = PropList(properties=[Property(definition=_TEST_PROPERTIES[1],
+                                              values=[134])],
+                         terminated=True)
 
         bits = self.prop_list.to_bits(props)
 
@@ -64,13 +68,16 @@ class PropertyListTests(TestCase):
                 )
         props, advanced = self.prop_list.from_bits(bits)
 
-        self.assertListEqual(props,
+        self.assertListEqual(props.properties,
                              [Property(definition=_TEST_PROPERTIES[2],
                                        values=[-22])])
+        self.assertTrue(props.terminated)
         self.assertEqual(advanced, 25)
 
     def test_offset_field_to_bits(self):
-        props = [Property(definition=_TEST_PROPERTIES[2], values=[-22])]
+        props = PropList(properties=[Property(definition=_TEST_PROPERTIES[2],
+                                              values=[-22])],
+                         terminated=True)
 
         bits = self.prop_list.to_bits(props)
 
@@ -88,13 +95,16 @@ class PropertyListTests(TestCase):
                 )
         props, advanced = self.prop_list.from_bits(bits)
 
-        self.assertListEqual(props,
+        self.assertListEqual(props.properties,
                              [Property(definition=_TEST_PROPERTIES[3],
                                        values=[27, 256])])
+        self.assertTrue(props.terminated)
         self.assertEqual(advanced, 35)
 
     def test_multiple_field_to_bits(self):
-        props = [Property(definition=_TEST_PROPERTIES[3], values=[27, 256])]
+        props = PropList(properties=[Property(definition=_TEST_PROPERTIES[3],
+                                              values=[27, 256])],
+                         terminated=True)
 
         bits = self.prop_list.to_bits(props)
 
@@ -112,13 +122,16 @@ class PropertyListTests(TestCase):
                 )
         props, advanced = self.prop_list.from_bits(bits)
 
-        self.assertListEqual(props,
+        self.assertListEqual(props.properties,
                              [Property(definition=_TEST_PROPERTIES[4],
                                        values=[511])])
+        self.assertTrue(props.terminated)
         self.assertEqual(advanced, 27)
 
     def test_early_terminator_to_bits(self):
-        props = [Property(definition=_TEST_PROPERTIES[4], values=[511])]
+        props = PropList(properties=[Property(definition=_TEST_PROPERTIES[4],
+                                              values=[511])],
+                         terminated=True)
 
         bits = self.prop_list.to_bits(props)
 
@@ -127,3 +140,20 @@ class PropertyListTests(TestCase):
                           '111111111'  # Value = 511
                           '111111111'  # Terminator
                           ))
+
+    def test_unterminated_from_bits(self):
+        bits = '1111011110'
+
+        props, advanced = self.prop_list.from_bits(bits)
+
+        self.assertListEqual(props.properties, [])
+        self.assertFalse(props.terminated)
+        self.assertEqual(advanced, 0)
+
+    def test_unterminated_from_bits(self):
+        props = PropList(properties=[], terminated=False)
+
+        bits = self.prop_list.to_bits(props)
+
+        self.assertEqual(bits, '')
+
