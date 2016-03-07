@@ -31,9 +31,10 @@ _FILES_WITH_DURABILITY = (
     'data/items/belt',
     'data/items/boot',
     'data/items/glove',
-    'data/items/shield',
-    'data/items/weapon',
     'data/items/helm',
+    'data/items/shield',
+    'data/items/stack-weapon',
+    'data/items/weapon',
 )  # yapf: disable
 
 
