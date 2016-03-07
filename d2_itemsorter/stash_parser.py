@@ -67,8 +67,79 @@ def _check_stash(stash):
                 return False
     Logger.info("Total items: {}", item_count)
     return True
+
+
+def _show_missing_parses_in_stash(stash):
+    Logger.info("Has {} pages", stash['page_count'])
+    for page_no, page in enumerate(stash['pages']):
+        with Logger.add_level("Page {}/{}", page_no + 1, stash['page_count']):
+            for item_no, item_data in enumerate(
+                    sorted(page['items'],
+                           key=lambda i: Item(i).position())):
+                gems = item_data['gems']
+                item = Item(item_data)
+                item_info = item.info()
+                data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
+                    d=item_info)
+                tail = item_data['item']['tail']
+                tail_is_padding = not tail or (len(tail) < 8 and
+                                               set(tail) == {'0'})
+
+                if tail_is_padding and '?' != item_info.width:
+                    continue
+
+                mark = _GREEN_TICK if tail_is_padding else _RED_CROSS
+                Logger.info(u"Item {}/{}: {} - {} [{}] Tail: {}{}", item_no + 1,
+                            page['item_count'], item.position(), data,
+                            item.quality(), len(tail), mark)
+                with Logger.add_level():
+                    extended_info = item.extended_info()
+                    specific_info = item_data['item'].get('specific_info', {})
+                    if extended_info:
+                        Logger.info("ExInfo: q:{} iLvl:{} setId:{}, mag1:{}, mag2:{}",
+                                    extended_info['quality'],
+                                    extended_info['drop_level'],
+                                    extended_info.get('set_id'),
+                                    extended_info.get('magic_prefix'),
+                                    extended_info.get('magic_suffix'),
+                                   )
+                        Logger.info("SpecInfo: Def:{} Dur:{}/{} Qty:{} Sock:{}",
+                                    specific_info.get('defense'),
+                                    specific_info.get('current_durability'),
+                                    specific_info.get('max_durability'),
+                                    specific_info.get('quantity'),
+                                    specific_info.get('num_sockets'),
+                                   )
+                        Logger.info("SpecInfo Origin: {}", specific_info['__origin'])
                         proplist = specific_info.get('properties')
                         if proplist is not None:
+                            with Logger.add_level('Properties:'):
+                                for prop in proplist.properties:
+                                    Logger.info("- {}", prop.as_game_str())
+                            for x in xrange(1, 6):
+                                set_proplist = specific_info.get('set_props_{}'.format(x))
+                                if set_proplist is not None:
+                                    with Logger.add_level("Set properties #{}", x):
+                                        for prop in set_proplist.properties:
+                                            Logger.info("- {}", prop.as_game_str())
+
+                            if not tail_is_padding:
+                                Logger.info("Tail: {}", tail)
+                                Logger.info("First prop id: {}, values: {}",
+                                            bits_to_int(tail[:9][::-1]),
+                                            [bits_to_int(tail[9:10 + i][::-1])
+                                             for i in xrange(12)])
+                    if gems:
+                        with Logger.add_level('Has {} gems', len(gems)):
+                            for gem_no, gem in enumerate(gems):
+                                gem_type = gem['item_type']
+                                gem_info = get_item_type_info(gem_type)
+                                Logger.info(
+                                    "Gem {}/{}: {d.id} = {d.name} ({d.width}x{d.height})",
+                                    gem_no + 1,
+                                    len(gem),
+                                    d=gem_info)
+
 
 def _show_stash(stash, show_extended=True):
     Logger.info("Has {} pages", stash['page_count'])
@@ -309,6 +380,8 @@ def _process_handle(handle, patch=False):
             return
 
         _show_stash(stash)
+        Logger.info(color.bright_green("Items with missing info:"))
+        _show_missing_parses_in_stash(stash)
 
         filters = _get_all_filters(_ITEMS_SORT_ORDER, _ITEM_FILTERS)
         Logger.info('There are {} filter', len(filters))
