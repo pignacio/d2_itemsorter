@@ -154,6 +154,7 @@ class BinarySchema(object):
                     res[piece.field], advance = type_.from_bits(bits, parent=res)
                     position += advance
 
+        res['__origin'] = binary_str[:position]
         del res[self.PARENT_FIELD]
         return res, position
 

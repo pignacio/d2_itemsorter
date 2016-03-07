@@ -22,7 +22,7 @@ from .pager import item_type_filter, ItemFilter, items_to_pages
 from .props import PropertyList, MISSING_PROPERTY_IDS
 from .schema import (SchemaPiece, Integer, Chars, BinarySchema, Until,
                      NullTerminatedChars)
-from .utils import str_to_bits, bits_to_str
+from .utils import str_to_bits, bits_to_str, bits_to_int
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -35,6 +35,38 @@ _GREEN_TICK = color.bright_green(u"[✓]")
 _RED_CROSS = color.bright_red(u"[✗]")
 
 _ITEM_PARSES = collections.Counter()
+_FAILED_PARSES = collections.Counter()
+
+
+def _check_stash(stash):
+    item_schema = BinarySchema(_ITEM_SCHEMA)
+    Logger.info("Checking stash. Has {} pages", stash['page_count'])
+    item_count = 0
+    for page_no, page in enumerate(stash['pages']):
+        for item_no, item_data in enumerate(
+                sorted(page['items'],
+                       key=lambda i: Item(i).position())):
+            item_count += 1
+            item = Item(item_data)
+            bits = item_schema.to_bits(item_data)
+            tail = item_data['item']['tail']
+            tail_is_padding = not tail or (len(tail) < 8 and
+                                           set(tail) == {'0'})
+            _ITEM_PARSES[tail_is_padding] += 1
+            if not tail_is_padding:
+                _FAILED_PARSES[item.type()] += 1
+            if bits != item_data['__origin']:
+                item_info = item.info()
+                data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
+                    d=item_info)
+                mark = _GREEN_TICK if tail_is_padding else _RED_CROSS
+                Logger.error("FAIL!!!!! Page:{} Item:{}", page_no + 1, item_no + 1)
+                Logger.info(u"Item {}/{}: {} - {} [{}] Tail: {}{}", item_no + 1,
+                            page['item_count'], item.position(), data,
+                            item.quality(), len(tail), mark)
+                return False
+    Logger.info("Total items: {}", item_count)
+    return True
                         proplist = specific_info.get('properties')
                         if proplist is not None:
 
@@ -269,6 +301,10 @@ def _process_handle(handle, patch=False):
                   BinarySchema(_PERSONAL_STASH_SCHEMA))
         stash = parser.decode(binary_str)
         Logger.info('Decoded')
+
+        if not _check_stash(stash):
+            Logger.error("Failed stash checking")
+            return
 
         _show_stash(stash)
 
