@@ -250,7 +250,7 @@ _ITEM_FILTERS = [
 _ITEMS_SORT_ORDER = [
     [['rvsl'], ['rvs '], ['rvl ']],
     [['ep13'], ['ept '], ['ep2 '], ['ep3 '], ['ep4 '], ['ep5 '], ['ep6 ']],
-    [['cm1 '], ['cm2 '], ['cm3 ']],
+    [['bcm1'], ['bcm2'], ['cm1 '], ['cm2 '], ['cm3 ']],
     [['amu ']],
     [['rin ']],
     [['souls']],
@@ -258,18 +258,21 @@ _ITEMS_SORT_ORDER = [
         ['gpb ', 'glb ', 'gsb ', 'gfb ', 'gcb '],
         ['gpg ', 'glg ', 'gsg ', 'gfg ', 'gcg '],
         ['gpr ', 'glr ', 'gsr ', 'gfr ', 'gcr '],
-        ['gpv ', 'glv ', 'gsv ', 'gfv ', 'gcv '],
+        ['gpv ', 'gsv ', 'gfv ', 'gcv '],
         ['gpw ', 'glw ', 'gsw ', 'gfw ', 'gcw '],
         ['gpy ', 'gly ', 'gsy ', 'gfy ', 'gcy '],
         ['skl ', 'skf ', 'skc '],
     ],
     [
-        ['r{:02} '.format(i)] for i in xrange(1, 31)
+        ['r{:02} '.format(i)] for i in xrange(1, 50)
     ],
     [['jew ']],
     [['bos '], ['trpg']],
     [['gld1'], ['gld2'], ['gld3'], ['gld4']],
     [['cb1 '], ['fuk '], ['egb '], ['spg '], ['tet ']],
+    [
+        ['c{:02} '.format(i)] for i in xrange(1, 50)
+    ],
     [['mbag']],
     [['mgat']],
     [['01d ']],
@@ -277,13 +280,18 @@ _ITEMS_SORT_ORDER = [
     [['g01 '], ['g02 '], ['g03 '], ['g04 '], ['g13 '], ],
     [['metx'], ['ethr']],
     [['m03 ', 'm04 ']],
-    [['p30 '], ['p31 ']],
+    [
+        ['p{:02} '.format(i)] for i in xrange(1, 50)
+    ],
+    [
+        ['{:02}f '.format(i)] for i in xrange(1, 15)
+    ],
     [['m02 ']],
     [['h21 '], ['07b ']],
     [['stn '], ['00b ']],
     [['mgn '], ['01b ']],
-    [['ls0 '], ['05b ']],
-    [['bu1 ']],
+    [['ls0 '], ['ls3 '], ['05b ']],
+    [['e01 '], ['bu1 ']],
     [['uniques']],
     [['sets']],
 ]  # yapf: disable
