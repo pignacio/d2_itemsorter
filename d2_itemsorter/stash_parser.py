@@ -127,8 +127,11 @@ def _show_missing_parses_in_stash(stash):
                                 Logger.info("Tail: {}", tail)
                                 Logger.info("First prop id: {}, values: {}",
                                             bits_to_int(tail[:9][::-1]),
-                                            [bits_to_int(tail[9:10 + i][::-1])
-                                             for i in xrange(12)])
+                                            [(i,
+                                              bits_to_int(tail[9:9 + i][::-1]),
+                                              bits_to_int(tail[9 + i:9 + i + 9][::-1])
+                                             )
+                                             for i in xrange(1, 17)])
                     if gems:
                         with Logger.add_level('Has {} gems', len(gems)):
                             for gem_no, gem in enumerate(gems):
