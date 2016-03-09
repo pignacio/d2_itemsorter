@@ -1,19 +1,36 @@
 id,name
-12,Multiple Shot
-36,Fire Bolt (Sorceress Only)
-38,Charged Bolt (Sorceress Only)
-48,Traps (Assassin Only)
-66,Amplify Damage
-67,Teeth
-72,Weaken
-73,Poison Dagger
-96,Sacrifice (Paladin Only)
+012,Multiple Shot
+014,Power Strike
+036,Fire Bolt (Sorceress Only)
+038,Charged Bolt (Sorceress Only)
+041,Inferno
+048,Traps (Assassin Only)
+054,Teleport
+066,Amplify Damage
+067,Teeth
+072,Weaken
+073,Poison Dagger
+076,Iron Maiden
+096,Sacrifice (Paladin Only)
+099,Prayer
+107,Charge
+114,Holy Freeze Aura
+138,Shout
+140,Double Throw
 147,Frenzy
+151,Whirlwind
 237,Summon Dire Wolf
+308,Death Mauler Spike
 374,Poison Mastery (Necromancer Only)
 429,Bone Armor
 453,Succubus Bolt
 456,Quill Shot
-611,Blow Dart
+463,Familiar Aura
+497,Machine Gun Fire
+595,Impregnate
+603,Imp Fireball
+604,Imp Missile
+611,Potion Launcher
+619,Summon Ancient
 637,Monster Gate Call
 682,Summon Ice Golem
