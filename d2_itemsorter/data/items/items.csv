@@ -1,10 +1,16 @@
 id,name,width,height
 03f ,Orange,1,1
+04f ,Pineapple,1,1
 amu ,Amulet,1,1
+bcm1,Small Charm,1,1
+bcm2,Small Charm,1,1
 bos ,Book of Skill,2,2
 bu1 ,Battery,1,1
 c09 ,Laurel,1,1
 c10 ,Inf Mana,1,1
+c11 ,RIP,1,1
+c12 ,Portable Armor Shrine,1,1
+c16 ,Portable Experience Shrine,1,1
 cb1 ,Chill Ball,1,1
 cm1 ,Small Charm,1,1
 cm2 ,Large Charm,1,2
@@ -39,8 +45,15 @@ mbag,Money Bag,1,1
 metx,Morsel,1,1
 mgat,Moster Gate,1,1
 opl ,Fulminating Potion,1,1
+p10 ,Blood Stone,1,1
+p11 ,Mana Rock,1,1
+p12 ,Strength Stone,1,1
+p14 ,Ice Cube,1,1
+p18 ,Magic Strength Stone,1,1
 p30 ,Stone of Poison Mastery,1,1
 p31 ,Stone of Magic Mastery,1,1
+p32 ,Summon Stone,1,1
+p33 ,Strike Stone,1,1
 rin ,Ring,1,1
 rvl ,Full Rejuvenation Potion,1,1
 rvs ,Rejuvenation Potion,1,1

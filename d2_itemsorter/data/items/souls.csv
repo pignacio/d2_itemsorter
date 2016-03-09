@@ -3,12 +3,15 @@ id,name,width,height
 1631,Lady Freeze Soul (Nor),1,1
 1661,Ghost Wolf Soul (Nor),1,1
 1688,Hell Locust Soul (Nor),1,1
+1736,Devil Spider Soul (Nor),1,1
 1748,Shadow Stalker Soul (Nor),1,1
+1754,Baal's Assassin Guard Soul (Nor),1,1
 1861,Titan Soul (Nor),1,1
 1866,Icky Face Soul (Nor),1,1
 1920,Greenskin Soul (Nor),1,1
 1921,Goblin Soul (Nor),1,1
 1951,Snake Bowman Soul (Nor),1,1
+1967,Undead Vodoo Fetish Soul (Nor),1,1
 1979,Red Storm Soul (Nor),1,1
 503 ,Burning Dead Soul (Nor),1,1
 504 ,Horror Soul (Nor),1,1
@@ -40,6 +43,7 @@ id,name,width,height
 644 ,Dark Spearwoman Soul (Nor),1,1
 647 ,Black Lancer Soul (Nor),1,1
 652 ,Burning Dead Archer Soul (Nor),1,1
+672 ,Duriel Soul (Nor),1,1
 674 ,Undead Fetish Soul (Nor),1,1
 677 ,Undead Stygian Doll Soul (Nor),1,1
 680 ,Zakarumite Soul (Nor),1,1
@@ -53,7 +57,19 @@ id,name,width,height
 766 ,Flayer Soul (Nor),1,1
 767 ,Soul Killer Soul (Nor),1,1
 768 ,Stygian Doll Soul (Nor),1,1
+778 ,Defiled Warrior Soul (Nor),1,1
+786 ,Chilled Froth Soul (Nor),1,1
 788 ,Enslaved Soul (Nor),1,1
+791 ,Fire Boar Soul (Nor),1,1
+792 ,Hell Spawn Soul (Nor),1,1
 798 ,Stygian Harlot Soul (Nor),1,1
+800 ,Blood Temptress Soul (Nor),1,1
 802 ,Vile Witch Soul (Nor),1,1
+822 ,Demon Trickster Soul (Nor),1,1
 830 ,Night Lord Soul (Nor),1,1
+838 ,Death Brigadier Soul (Nor),1,1
+839 ,Talic Soul (Nor),1,1
+840 ,Madawc Soul (Nor),1,1
+847 ,Rank Defiler Soul (Nor),1,1
+848 ,Pain Worm Soul (Nor),1,1
+854 ,Baal Personal Guard Soul (Nor),1,1

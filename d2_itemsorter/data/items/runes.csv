@@ -1,13 +1,15 @@
 id,name,width,height
-r01 ,El rune,1,1
-r02 ,Eld rune,1,1
-r03 ,Tir rune,1,1
-r04 ,Nef rune,1,1
-r05 ,Eth rune,1,1
-r06 ,Ith rune,1,1
-r07 ,Tal rune,1,1
-r08 ,Ral rune,1,1
-r09 ,Ort rune,1,1
-r10 ,Thul rune,1,1
-r12 ,Sol rune,1,1
-r14 ,Dol rune,1,1
+r01 ,El Rune,1,1
+r02 ,Eld Rune,1,1
+r03 ,Tir Rune,1,1
+r04 ,Nef Rune,1,1
+r05 ,Eth Rune,1,1
+r06 ,Ith Rune,1,1
+r07 ,Tal Rune,1,1
+r08 ,Ral Rune,1,1
+r09 ,Ort Rune,1,1
+r10 ,Thul Rune,1,1
+r12 ,Sol Rune,1,1
+r13 ,Shael Rune,1,1
+r14 ,Dol Rune,1,1
+r34 ,Shift Glyph,1,1

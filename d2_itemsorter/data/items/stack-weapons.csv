@@ -1,7 +1,12 @@
 id,name,width,height
+bal ,Balanced Axe,2,3
+btax,Mammen Axe,1,2
 cmne,Corpse Mine,1,1
+glv ,Glaive,1,4
 hwat,Holy Water,1,1
 jav ,Javelin,1,3
 opm ,Exploding Potion,1,1
+gpm ,Choking Gas Potion,1,1
 pil ,Pilum,1,3
+tkf ,Throwing Knife,1,1
 ts3 ,Throwing Star,1,1
