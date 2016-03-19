@@ -4,6 +4,7 @@ id,name
 036,Fire Bolt (Sorceress Only)
 038,Charged Bolt (Sorceress Only)
 041,Inferno
+044,Frost Nova
 048,Traps (Assassin Only)
 054,Teleport
 066,Amplify Damage
@@ -33,4 +34,5 @@ id,name
 611,Potion Launcher
 619,Summon Ancient
 637,Monster Gate Call
+653,Gold Digger
 682,Summon Ice Golem

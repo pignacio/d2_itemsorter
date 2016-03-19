@@ -1,9 +1,19 @@
 id,name,width,height
+1112,Bone Mage Soul (Nt),1,1
+1577,Treasure Maggot Soul (Nor),1,1
+1580,Treasurebus Soul (Nor),1,1
 1589,Gust Golem Soul (Nor),1,1
+1622,Worlock Soul (Nor),1,1
 1631,Lady Freeze Soul (Nor),1,1
+1646,Spirit Drinker Soul (Nor),1,1
+1649,Shadow Wraith Soul (Nor),1,1
 1661,Ghost Wolf Soul (Nor),1,1
 1688,Hell Locust Soul (Nor),1,1
+1682,Fallen Angel Soul (Nor),1,1
+1692,Blood Knight Soul (Nor),1,1
+1693,Phase Knight Soul (Nor),1,1
 1736,Devil Spider Soul (Nor),1,1
+1739,Andariel's Ghost Soul (Nor),1,1
 1748,Shadow Stalker Soul (Nor),1,1
 1754,Baal's Assassin Guard Soul (Nor),1,1
 1861,Titan Soul (Nor),1,1
@@ -11,12 +21,16 @@ id,name,width,height
 1920,Greenskin Soul (Nor),1,1
 1921,Goblin Soul (Nor),1,1
 1951,Snake Bowman Soul (Nor),1,1
+1966,Scream Skeleton Archer Soul (Nor),1,1
 1967,Undead Vodoo Fetish Soul (Nor),1,1
+1972,Hyper Doll Soul (Nor),1,1
 1979,Red Storm Soul (Nor),1,1
 503 ,Burning Dead Soul (Nor),1,1
 504 ,Horror Soul (Nor),1,1
 505 ,Zombie Soul (Nor),1,1
+506 ,Hungry Dead Soul (Nor),1,1
 509 ,Plague Bearer Soul (Nor),1,1
+510 ,Afflicted Soul (Nor),1,1
 516 ,Blood Hawk Soul (Nor),1,1
 518 ,Cloud Stalker Soul (Nor),1,1
 519 ,Fallen Soul (Nor),1,1
@@ -40,6 +54,7 @@ id,name,width,height
 605 ,Winged Nightmare Soul (Nor),1,1
 634 ,Fetish Soul (Nor),1,1
 635 ,Flayer Soul (Nor),1,1
+638 ,Andariel Soul (Nor),1,1
 644 ,Dark Spearwoman Soul (Nor),1,1
 647 ,Black Lancer Soul (Nor),1,1
 652 ,Burning Dead Archer Soul (Nor),1,1
@@ -49,6 +64,7 @@ id,name,width,height
 680 ,Zakarumite Soul (Nor),1,1
 682 ,Zealot Soul (Nor),1,1
 692 ,Summoner Soul (Nor),1,1
+697 ,Bloodraven Soul (Nor),1,1
 724 ,Maw Fiend Soul (Nor),1,1
 732 ,Giant Urchin Soul (Nor),1,1
 755 ,Burning Dead Mage Soul (Nor),1,1
@@ -62,14 +78,20 @@ id,name,width,height
 788 ,Enslaved Soul (Nor),1,1
 791 ,Fire Boar Soul (Nor),1,1
 792 ,Hell Spawn Soul (Nor),1,1
+794 ,Greater Hell Spawn Soul (Nor),1,1
 798 ,Stygian Harlot Soul (Nor),1,1
 800 ,Blood Temptress Soul (Nor),1,1
 802 ,Vile Witch Soul (Nor),1,1
 822 ,Demon Trickster Soul (Nor),1,1
+823 ,Demon Sprite Soul (Nor),1,1
 830 ,Night Lord Soul (Nor),1,1
+837 ,Death Berserker Soul (Nor),1,1
 838 ,Death Brigadier Soul (Nor),1,1
 839 ,Talic Soul (Nor),1,1
 840 ,Madawc Soul (Nor),1,1
 847 ,Rank Defiler Soul (Nor),1,1
 848 ,Pain Worm Soul (Nor),1,1
 854 ,Baal Personal Guard Soul (Nor),1,1
+877 ,Fallen Soul (Nt),1,1
+878 ,Carver Soul (Nt),1,1
+927 ,Tomb Viper Soul (Nt),1,1

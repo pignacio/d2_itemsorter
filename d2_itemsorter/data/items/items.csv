@@ -1,6 +1,7 @@
 id,name,width,height
 03f ,Orange,1,1
 04f ,Pineapple,1,1
+07d ,Bloodraven Doll,1,2
 amu ,Amulet,1,1
 bcm1,Small Charm,1,1
 bcm2,Small Charm,1,1
@@ -10,6 +11,7 @@ c09 ,Laurel,1,1
 c10 ,Inf Mana,1,1
 c11 ,RIP,1,1
 c12 ,Portable Armor Shrine,1,1
+c15 ,Portable Mana Recharge Shrine,1,1
 c16 ,Portable Experience Shrine,1,1
 cb1 ,Chill Ball,1,1
 cm1 ,Small Charm,1,1
@@ -26,6 +28,7 @@ ep5 ,Bag of Experience (16000),1,1
 ep6 ,Bag of Experience (32000),1,1
 ept ,Bag of Experience (1000),1,1
 ethr,Fairy Tear,1,1
+ex0 ,Elixir of Strength,1,1
 fuk ,Burning Orb,1,1
 g01 ,Golem in a Bottle,1,1
 g02 ,Golem in a Bottle,1,1
@@ -37,27 +40,37 @@ gld1,Gold Bar 9k,1,1
 gld2,Gold Bar 10k,1,1
 gld3,Gold Bar 14k,1,1
 gld4,Gold Bar 16k,1,1
+ibk ,Book of Identify,1,2
+isc ,Scroll of Identify,1,1
 jew ,Jewel,1,1
+lu2 ,Key to the Uniques,1,2
+lu3 ,Key to the Sets,1,2
 m02 ,Space Fragment,1,1
 m03 ,Blacksmith's Hammer,2,2
 m04 ,Anvil,2,1
 mbag,Money Bag,1,1
 metx,Morsel,1,1
 mgat,Moster Gate,1,1
+mtye,Mistery Egg,2,1
 opl ,Fulminating Potion,1,1
 p10 ,Blood Stone,1,1
 p11 ,Mana Rock,1,1
 p12 ,Strength Stone,1,1
 p14 ,Ice Cube,1,1
+p16 ,Zap Stone,1,1
 p18 ,Magic Strength Stone,1,1
+p19 ,Shiver Stone,1,1
 p30 ,Stone of Poison Mastery,1,1
 p31 ,Stone of Magic Mastery,1,1
 p32 ,Summon Stone,1,1
 p33 ,Strike Stone,1,1
+priz,Prize Spawner,1,1
 rin ,Ring,1,1
 rvl ,Full Rejuvenation Potion,1,1
 rvs ,Rejuvenation Potion,1,1
 rvsl,Lesser Rejuvenation Potion,1,1
 spg ,Shining Poison,1,1
+tbk ,Book of Town Portal,1,2
 tet ,Teeth,1,1
 trpg,Training Page,1,1
+tsc ,Scroll of Town Portal,1,1
