@@ -8,6 +8,7 @@ id,name,width,height
 1646,Spirit Drinker Soul (Nor),1,1
 1649,Shadow Wraith Soul (Nor),1,1
 1661,Ghost Wolf Soul (Nor),1,1
+1685,Shadow Reaper Soul (Nor),1,1
 1688,Hell Locust Soul (Nor),1,1
 1682,Fallen Angel Soul (Nor),1,1
 1692,Blood Knight Soul (Nor),1,1
@@ -95,3 +96,5 @@ id,name,width,height
 877 ,Fallen Soul (Nt),1,1
 878 ,Carver Soul (Nt),1,1
 927 ,Tomb Viper Soul (Nt),1,1
+928 ,Claw Viper Soul (Nt),1,1
+941 ,Itchies Soul (Nt),1,1

@@ -133,6 +133,8 @@ _PROPERTIES = {p.id: p for p in [
     PropertyDef(158, [7], 'Fires Explosive Arrows or Bolds <{:d}>'),
     PropertyDef(159, [9], '{:+d} to Minimum Damage'),
     PropertyDef(160, [10], '{:+d} to Maximum Damage'),
+    PropertyDef(179, [10, 12], '+{1:d}% to [?][179] to Group<{0:d}>'),
+    PropertyDef(180, [10, 12], '+{1:d}% to [?][180] to Group<{0:d}>'),
     PropertyDef(181, [9], '[?][181] ??? <{:d}>'),
     PropertyDef(188, [16, 3], '+{1:d} to Skill<{0:d}> [188][?]'),  # TODO: unconfirmed, looks weird
     PropertyDef(195, [6, 10, 7], '{2:d}% Chance to cast Level {0:d} Skill<{1:d}> on attack'),
@@ -181,6 +183,7 @@ _PROPERTIES = {p.id: p for p in [
     PropertyDef(372, [8], '[?][372] <{:d}>'),
     PropertyDef(388, [9], '{:d}% Extra Base Life to Summons', offsets=[50]),
     PropertyDef(407, [6, 10, 7], '{2:d}% Chance to cast Level {0:d} Skill<{1:d}> when struck'),
+    PropertyDef(416, [10], '[?][416] <{:d}>'),
     PropertyDef(441, [7], 'Extra resistance from temporary resistance potions +{:d}%'),
     PropertyDef(443, [15], '+{:d} Extra duration (in frames) to all resistance potions'),
     PropertyDef(444, [15], '+{:d} Extra duration (in frames) to stamina potions'),

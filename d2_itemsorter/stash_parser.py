@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division
 
 import collections
+import copy
 import cProfile
 import itertools
 import logging
@@ -15,8 +16,8 @@ from pignacio_scripts.terminal import color
 import click
 
 from .items import (MISSING_ITEM_TYPES, UNIQUE_QUALITY_ID, SET_QUALITY_ID,
-                    Item, get_item_type_info, item_has_defense,
-                    item_has_quantity, item_has_durability)
+                    MAGIC_QUALITY_ID, Item, get_item_type_info,
+                    item_has_defense, item_has_quantity, item_has_durability)
 from .logger import Logger
 from .pager import item_type_filter, ItemFilter, items_to_pages
 from .props import PropertyList, MISSING_PROPERTY_IDS
@@ -26,7 +27,7 @@ from .utils import str_to_bits, bits_to_str, bits_to_int
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
-_SHARED_STASH_HEADER = str_to_bits("\x53\x53\x53\x00\x30\x31")
+_SHARED_STASH_HEADER = str_to_bits("\x53\x53\x53\x00\x30")
 _STASH_HEADER = str_to_bits("\x43\x53\x54\x4d\x30\x31")
 _PAGE_HEADER = str_to_bits("\x53\x54\x00\x4a\x4d")
 _ITEM_HEADER = str_to_bits("\x4a\x4d")
@@ -36,6 +37,10 @@ _RED_CROSS = color.bright_red(u"[✗]")
 
 _ITEM_PARSES = collections.Counter()
 _FAILED_PARSES = collections.Counter()
+_STORED_IN = collections.Counter()
+
+_STORED_IN_CUBE = 4
+_STORED_IN_STASH = 5
 
 
 def _check_stash(stash):
@@ -46,6 +51,7 @@ def _check_stash(stash):
         for item_no, item_data in enumerate(
                 sorted(page['items'],
                        key=lambda i: Item(i).position())):
+            _STORED_IN[(item_data['item']['stored_in'], item_data['item']['location'])] += 1
             item_count += 1
             item = Item(item_data)
             bits = item_schema.to_bits(item_data)
@@ -61,9 +67,10 @@ def _check_stash(stash):
                     d=item_info)
                 mark = _GREEN_TICK if tail_is_padding else _RED_CROSS
                 Logger.error("FAIL!!!!! Page:{} Item:{}", page_no + 1, item_no + 1)
-                Logger.info(u"Item {}/{}: {} - {} [{}] Tail: {}{}", item_no + 1,
-                            page['item_count'], item.position(), data,
-                            item.quality(), len(tail), mark)
+                Logger.info(u"P:{} Item {}/{}: {} - {} [{}] Tail: {}{}",
+                            page_no + 1, item_no + 1, page['item_count'],
+                            item.position(), data, item.quality(), len(tail),
+                            mark)
                 return False
     Logger.info("Total items: {}", item_count)
     return True
@@ -89,10 +96,11 @@ def _show_missing_parses_in_stash(stash):
                     continue
 
                 mark = _GREEN_TICK if tail_is_padding else _RED_CROSS
-                Logger.info(u"Item {}/{}: {} - {} [{}] Tail: {}{}", item_no + 1,
-                            page['item_count'], item.position(), data,
-                            item.quality(), len(tail), mark)
-                with Logger.add_level():
+                with Logger.add_level(
+                        u"P:{} Item {}/{}: {} - {} [{}] Tail: {}{}",
+                        page_no + 1, item_no + 1, page['item_count'],
+                        item.position(), data, item.quality(), len(tail),
+                        mark):
                     extended_info = item.extended_info()
                     specific_info = item_data['item'].get('specific_info', {})
                     if extended_info:
@@ -162,39 +170,56 @@ def _show_stash(stash, show_extended=True):
                                                set(tail) == {'0'})
 
                 mark = _GREEN_TICK if tail_is_padding else _RED_CROSS
-                Logger.info(u"Item {}/{}: {} - {} [{}] Tail: {}{}", item_no + 1,
-                            page['item_count'], item.position(), data,
-                            item.quality(), len(tail), mark)
+                Logger.info(u"P:{} Item {}/{}: {} - {} [{}] Tail: {}{}",
+                            page_no + 1, item_no + 1, page['item_count'],
+                            item.position(), data, item.quality(), len(tail),
+                            mark)
                 with Logger.add_level():
                     extended_info = item.extended_info()
-                    specific_info = item_data['item'].get('specific_info', {})
-                    if show_extended and extended_info and not tail_is_padding:
-                        Logger.info("ExInfo: q:{} iLvl:{} setId:{}, mag1:{}, mag2:{}",
-                                    extended_info['quality'],
-                                    extended_info['drop_level'],
-                                    extended_info.get('set_id'),
-                                    extended_info.get('magic_prefix'),
-                                    extended_info.get('magic_suffix'),
-                                   )
-                        Logger.info("SpecInfo: Def:{} Dur:{}/{} Qty:{} Sock:{}",
-                                    specific_info.get('defense'),
-                                    specific_info.get('current_durability'),
-                                    specific_info.get('max_durability'),
-                                    specific_info.get('quantity'),
-                                    specific_info.get('num_sockets'),
-                                   )
-                        Logger.info("SpecInfo Origin: {}", specific_info['__origin'])
+                    if show_extended and extended_info:
+                        ex_infos = collections.OrderedDict()
+                        ex_infos['q'] = extended_info['quality']
+                        ex_infos['iLvl'] = extended_info['drop_level']
+                        if item.quality_id() == SET_QUALITY_ID:
+                            ex_infos['setId'] = extended_info.get('setId')
+                        if item.quality_id() == MAGIC_QUALITY_ID:
+                            ex_infos['mag1'] = extended_info.get(
+                                'magic_prefix')
+                            ex_infos['mag2'] = extended_info.get(
+                                'magic_suffix')
+                        ex_infos = " ".join(["{}:{}".format(k, v)
+                                    for k, v in ex_infos.items()])
+                        Logger.info("ExInfo: {}", ex_infos)
+
+                        specific_info = item_data['item'].get('specific_info',
+                                                              {})
+                        sp_infos = collections.OrderedDict()
+                        sp_infos['Def'] = specific_info.get('defense')
+                        sp_infos['Dur'] = "{}/{}".format(
+                            specific_info.get('current_durability'),
+                            specific_info.get('max_durability'))
+                        sp_infos['Qty'] = specific_info.get('quantity')
+                        sp_infos['Sock'] = specific_info.get('num_sockets')
+                        sp_infos = " ".join(["{}:{}".format(k, v)
+                                    for k, v in sp_infos.items()])
+                        Logger.info("SpecInfo: {}", sp_infos)
+
+                        Logger.info("SpecInfo Origin: {}",
+                                    specific_info['__origin'])
                         proplist = specific_info.get('properties')
                         if proplist is not None:
                             with Logger.add_level('Properties:'):
                                 for prop in proplist.properties:
                                     Logger.info("- {}", prop.as_game_str())
                             for x in xrange(1, 6):
-                               set_proplist = specific_info.get('set_props_{}'.format(x))
-                               if set_proplist is not None:
-                                   with Logger.add_level("Set properties #{}", x):
+                                set_proplist = specific_info.get(
+                                    'set_props_{}'.format(x))
+                                if set_proplist is not None:
+                                    with Logger.add_level("Set properties #{}",
+                                                          x):
                                         for prop in set_proplist.properties:
-                                            Logger.info("- {}", prop.as_game_str())
+                                            Logger.info("- {}",
+                                                        prop.as_game_str())
 
                             if not tail_is_padding:
                                 Logger.info("Tail: {}", tail)
@@ -213,13 +238,14 @@ def _show_stash(stash, show_extended=True):
                                     len(gem),
                                     d=gem_info)
 
+
 def _get_all_items_from_stash(stash):
     for page in stash['pages']:
         for item in page['items']:
             yield item
 
 
-_INVALID_UNIQUE_TYPES = {'mbag', 'mgat'}
+_INVALID_UNIQUE_TYPES = {'mbag', 'mgat', 'priz'}
 
 
 def is_valid_unique(item):
@@ -261,10 +287,10 @@ _ITEMS_SORT_ORDER = [
         ['gpb ', 'glb ', 'gsb ', 'gfb ', 'gcb '],
         ['gpg ', 'glg ', 'gsg ', 'gfg ', 'gcg '],
         ['gpr ', 'glr ', 'gsr ', 'gfr ', 'gcr '],
-        ['gpv ', 'gsv ', 'gfv ', 'gcv '],
+        ['gpv ', 'gzv ', 'gsv ', 'gfv ', 'gcv '],
         ['gpw ', 'glw ', 'gsw ', 'gfw ', 'gcw '],
         ['gpy ', 'gly ', 'gsy ', 'gfy ', 'gcy '],
-        ['skl ', 'skf ', 'skc '],
+        ['skl ', 'sku ', 'skf ', 'skc '],
     ],
     [
         ['r{:02} '.format(i)] for i in xrange(1, 50)
@@ -327,12 +353,15 @@ def _get_all_sorted_item_types(sort_order):
     return res
 
 
-def _extract_items(pages, filters):
+def _extract_items(pages, filters, extract_only_if=None):
     extracted = collections.defaultdict(list)
     for page in pages:
         new_page_items = []
         for item_data in page['items']:
             item = Item(item_data)
+            if extract_only_if and not extract_only_if(item):
+                new_page_items.append(item_data)
+                continue
             for item_filter in filters:
                 if item_filter.filter(item):
                     extracted[item_filter.name].append(item)
@@ -341,7 +370,10 @@ def _extract_items(pages, filters):
                 new_page_items.append(item_data)
         page['items'] = new_page_items
         page['item_count'] = len(new_page_items)
+    return extracted
 
+
+def _sort_extracted_items(extracted, filters):
     for item_filter in filters:
         items = extracted[item_filter.name]
         items = item_filter.sort(items)
@@ -368,30 +400,38 @@ def _sort_items(items_by_filter, sort_order):
     return sorted_items
 
 
-def _process_handle(handle, patch=False):
+def _backup_handle(handle, contents):
+    if os.path.exists(handle.name):
+        fname, extension = os.path.basename(handle.name).rsplit(".", 1)
+        backup_file = os.path.join("backups", "{}-{}.{}".format(
+            fname, int(time.time()), extension))
+        try:
+            os.makedirs('backups')
+        except OSError:
+            pass
+        Logger.info("Writing backup...")
+        with open(backup_file, 'wb') as fout:
+            fout.write(contents)
+        Logger.info("Done writing backup")
+
+
+def _process_handle(handle, patch=False, add_cube_from=None, show_all=False):
     with Logger.add_level("Reading from '{}'", handle.name):
         str_contents = handle.read()
         Logger.info("Size: {} bytes", len(str_contents))
-        if os.path.exists(handle.name):
-            fname, extension = os.path.basename(handle.name).rsplit(".", 1)
-            backup_file = os.path.join("backups", "{}-{}.{}".format(
-                fname, int(time.time()), extension))
-            try:
-                os.makedirs('backups')
-            except OSError:
-                pass
-            Logger.info("Writing backup...")
-            with open(backup_file, 'wb') as fout:
-                fout.write(str_contents)
-            Logger.info("Done writing backup")
+        _backup_handle(handle, str_contents)
 
         Logger.info('Converting to binary string')
         binary_str = str_to_bits(str_contents)
 
+        if binary_str.startswith(_SHARED_STASH_HEADER):
+            Logger.info("Using shared stash schema")
+            parser = BinarySchema(_SHARED_STASH_SCHEMA)
+        else:
+            Logger.info("Using personal stash schema")
+            parser = BinarySchema(_PERSONAL_STASH_SCHEMA)
+
         Logger.info('Decoding...')
-        parser = (BinarySchema(_SHARED_STASH_SCHEMA)
-                  if binary_str.startswith(_SHARED_STASH_HEADER) else
-                  BinarySchema(_PERSONAL_STASH_SCHEMA))
         stash = parser.decode(binary_str)
         Logger.info('Decoded')
 
@@ -399,7 +439,10 @@ def _process_handle(handle, patch=False):
             Logger.error("Failed stash checking")
             return
 
-        _show_stash(stash)
+        if show_all:
+            Logger.info(color.bright_green("All items"))
+            _show_stash(stash)
+
         Logger.info(color.bright_green("Items with missing info:"))
         _show_missing_parses_in_stash(stash)
 
@@ -407,10 +450,37 @@ def _process_handle(handle, patch=False):
         Logger.info('There are {} filter', len(filters))
         extracted = _extract_items(stash['pages'], filters)
         for item_type, items in sorted(extracted.items()):
-            count = sum(len(r) for r in items)
-            if count:
-                Logger.info("Extracted items '{}' ({})", item_type, count)
+            if items:
+                Logger.info("Extracted items '{}' ({})", item_type, len(items))
 
+        if add_cube_from is not None:
+            with Logger.add_level("Adding cube from '{}'", add_cube_from.name):
+                char_contents = add_cube_from.read()
+                char_binary = str_to_bits(char_contents)
+                _backup_handle(add_cube_from, char_contents)
+                decoded_char = BinarySchema(_CHAR_D2S_SCHEMA).decode(char_binary)
+                if decoded_char['items']:
+                    # Last item may contain extra information in tail!
+                    last_item = decoded_char['items'].pop()
+                    char_items = _extract_items(
+                        [decoded_char],
+                        filters,
+                        extract_only_if=
+                        lambda i: i.data['item']['stored_in'] == _STORED_IN_CUBE
+                    )  # TODO: hacky!
+
+                    # Reinsert last item
+                    decoded_char['items'].append(last_item)
+
+                    for key, items in sorted(char_items.items()):
+                        for item in items:
+                            item.data['item']['stored_in'] = _STORED_IN_STASH
+                            item.data['item']['identified'] = 1
+                        if items:
+                            Logger.info("Extracted items '{}' ({})", key, len(items))
+                            extracted.setdefault(key, []).extend(items)
+
+        extracted = _sort_extracted_items(extracted, filters)
         Logger.info("Sorting items")
         sorted_items = _sort_items(extracted, _ITEMS_SORT_ORDER)
         Logger.info("Paging items")
@@ -445,6 +515,14 @@ def _process_handle(handle, patch=False):
             Logger.info('Patching: {}', handle.name)
             with open(handle.name, 'wb') as fout:
                 fout.write(contents)
+            if add_cube_from and os.path.exists(add_cube_from.name):
+                Logger.info('Patching: {}', add_cube_from.name)
+                with open(add_cube_from.name, 'wb') as char_out:
+                    _fix_char_data(decoded_char)
+                    char_contents = bits_to_str(BinarySchema(
+                        _CHAR_D2S_SCHEMA).encode(decoded_char))
+                    char_out.write(char_contents)
+
 
         with open("/tmp/test.d2x", "w") as fout:
             Logger.info('Writing to: /tmp/test.d2x', handle.name)
@@ -571,10 +649,12 @@ _ITEM_DATA_SCHEMA = [
     SchemaPiece('inscribed', Integer(1)),
     SchemaPiece('_unk5', 1),
     SchemaPiece('has_runeword', Integer(1)),
-    SchemaPiece('_unk6', 22),
+    SchemaPiece('_unk6', 15),
+    SchemaPiece('location', Integer(3)),
+    SchemaPiece('body_pos', Integer(4)),
     SchemaPiece('position_x', Integer(4)),
     SchemaPiece('position_y', Integer(4)),
-    SchemaPiece('_unk7', 3),
+    SchemaPiece('stored_in', Integer(3)),
     SchemaPiece('item_type', Chars(4)),
     SchemaPiece(
         'extended_info',
@@ -621,7 +701,10 @@ _PERSONAL_STASH_SCHEMA = [
 
 
 _SHARED_STASH_SCHEMA = [
-    SchemaPiece('header', Chars(6)),
+    SchemaPiece('header', Chars(5)),
+    SchemaPiece('value', Integer(8)),
+    SchemaPiece('shared_gold', Integer(32),
+                condition=lambda v: v['value'] == 50),
     SchemaPiece('page_count', Integer(32)),
     SchemaPiece(
         'pages',
@@ -635,7 +718,11 @@ _SHARED_STASH_SCHEMA = [
 @click.option('--debug', is_flag=True, help='Turn on debug mode')
 @click.option('--patch', is_flag=True, help='Patch the file in place')
 @click.option('--profile', is_flag=True, help='Profile the execution')
-def parse(filename, debug, patch, profile):
+@click.option('--add-cube-from', type=click.File('rb'), default=None)
+@click.option('--show-all',
+              is_flag=True,
+              help='Show all items, not just incomplete ones')
+def parse(filename, debug, patch, profile, add_cube_from, show_all):
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(stream=sys.stdout, level=level)
     logging.debug("PAGE: %s, %s", _PAGE_HEADER, bits_to_str(_PAGE_HEADER))
@@ -647,7 +734,7 @@ def parse(filename, debug, patch, profile):
     else:
         profiler = None
 
-    _process_handle(filename, patch=patch)
+    _process_handle(filename, patch=patch, add_cube_from=add_cube_from, show_all=show_all)
 
     if profiler:
         profiler.disable()
@@ -666,3 +753,88 @@ def parse(filename, debug, patch, profile):
     print "Full parses?: ", _ITEM_PARSES
     import pprint
     print "Failed parses: ", pprint.pprint(_FAILED_PARSES.most_common())
+    print "Stored in", _STORED_IN.most_common()
+
+_CHAR_D2S_SCHEMA = [
+    SchemaPiece('header', 32),
+    SchemaPiece('file_version', 32),
+    SchemaPiece('file_size', Integer(32)),
+    SchemaPiece('file_crc', Integer(32)),
+    SchemaPiece('weapon_set', 32),
+    SchemaPiece('name', NullTerminatedChars(8)),
+    SchemaPiece('type', 8),
+    SchemaPiece('title', 8),
+    SchemaPiece('__unk1', 16),
+    SchemaPiece('class', 8),
+    SchemaPiece('__unk2', 16),
+    SchemaPiece('level', Integer(8)),
+    SchemaPiece('__unk3', 32),
+    SchemaPiece('head', Until([_ITEM_HEADER])),
+    SchemaPiece('list_header', Chars(2)),
+    SchemaPiece('item_count', Integer(16)),
+    SchemaPiece(
+        'items',
+        BinarySchema(_ITEM_SCHEMA),
+        multiple=lambda v: v['item_count']),
+]  # yapf: disable
+
+
+_CRC_SIZE = 2**32
+
+
+def _fix_char_data(char_data):
+    Logger.info("Fixing char data")
+    char_data['file_crc'] = 0
+    char_data['item_count'] = len(char_data['items'])
+    Logger.info("Has {} items data", char_data['item_count'])
+
+    encoder = BinarySchema(_CHAR_D2S_SCHEMA)
+
+    pre_encode = encoder.encode(char_data)
+    char_data['file_size'] = len(pre_encode) // 8
+    Logger.info("Size: {} ({})", char_data['file_size'], len(pre_encode))
+
+    pre_encode = encoder.encode(char_data)
+    crc = 0
+    for byte in bits_to_str(pre_encode):
+        crc *= 2
+        if crc > _CRC_SIZE:
+            crc -= _CRC_SIZE
+            crc += 1
+        crc += ord(byte)
+        crc %= _CRC_SIZE
+    char_data['file_crc'] = crc
+    Logger.info("CRC: {} ({})", crc, hex(crc))
+
+
+@click.command()
+@click.argument('filename', type=click.File('rb'))
+@click.option('--debug', is_flag=True, help='Turn on debug mode')
+@click.option('--patch', is_flag=True, help='Patch the file in place')
+@click.option('--profile', is_flag=True, help='Profile the execution')
+def parse_char(filename, debug, patch, profile):
+    print filename
+    str_contents = filename.read()
+    Logger.info("Size: {} bytes", len(str_contents))
+
+    Logger.info('Converting to binary string')
+    binary_str = str_to_bits(str_contents)
+
+    Logger.info('Decoding...')
+    parser = BinarySchema(_CHAR_D2S_SCHEMA)
+    decoded = parser.decode(binary_str)
+    print repr(decoded['name'])
+    print len(decoded[BinarySchema.UNPARSED_FIELD])
+    for item_data in decoded['items']:
+        item = Item(item_data)
+        print item.type(), item.position(), item_data['item']['stored_in'], item_data['item']['location']
+#     decoded['items'].append(copy.deepcopy(decoded['items'][0]))
+#     decoded['items'][-1]['item']['stored_in'] = 4
+#     decoded['items'][-1]['item']['location'] = 0
+#     _fix_char_data(decoded)
+    for item_data in decoded['items']:
+        item = Item(item_data)
+        print item.type(), item.position(), item_data['item']['stored_in'], item_data['item']['location']
+
+#     with open(filename.name, 'w') as fout:
+#         fout.write(bits_to_str(parser.encode(decoded)))

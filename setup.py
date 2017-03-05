@@ -48,5 +48,6 @@ setup(name='d2_itemsorter',
       entry_points={
           'console_scripts': [
               'd2_parse=d2_itemsorter.stash_parser:parse',
+              'd2_char=d2_itemsorter.stash_parser:parse_char',
           ],
       }, )

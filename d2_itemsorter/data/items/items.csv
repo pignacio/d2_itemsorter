@@ -1,11 +1,14 @@
 id,name,width,height
 03f ,Orange,1,1
 04f ,Pineapple,1,1
+05f ,Radish,1,1
 07d ,Bloodraven Doll,1,2
+09d ,Radament Doll,1,2
 amu ,Amulet,1,1
 bcm1,Small Charm,1,1
 bcm2,Small Charm,1,1
 bos ,Book of Skill,2,2
+bos2,The All Knowing Book of Learning,2,2
 bu1 ,Battery,1,1
 c09 ,Laurel,1,1
 c10 ,Inf Mana,1,1
@@ -52,7 +55,6 @@ mbag,Money Bag,1,1
 metx,Morsel,1,1
 mgat,Moster Gate,1,1
 mtye,Mistery Egg,2,1
-opl ,Fulminating Potion,1,1
 p10 ,Blood Stone,1,1
 p11 ,Mana Rock,1,1
 p12 ,Strength Stone,1,1

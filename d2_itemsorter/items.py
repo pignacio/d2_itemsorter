@@ -112,21 +112,26 @@ def get_item_type_info(item_type):
     try:
         return _KNOWN_ITEM_TYPES[item_type]
     except KeyError:
-        MISSING_ITEM_TYPES.add(item_type)
+        if item_type not in MISSING_ITEM_TYPES:
+            Logger.warn("Unknown item type: '{}'", item_type)
+            MISSING_ITEM_TYPES.add(item_type)
         return ItemTypeInfo(item_type, '??????????', '?', '?')
 
 
 def item_has_defense(item_type):
+    get_item_type_info(item_type)
     _load_all_items()
     return item_type in _ITEMS_WITH_DEFENSE
 
 
 def item_has_durability(item_type):
+    get_item_type_info(item_type)
     _load_all_items()
     return item_type in _ITEMS_WITH_DURABILITY
 
 
 def item_has_quantity(item_type):
+    get_item_type_info(item_type)
     _load_all_items()
     return item_type in _ITEMS_WITH_QUANTITY
 
