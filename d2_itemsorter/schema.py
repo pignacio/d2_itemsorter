@@ -7,10 +7,17 @@ import logging
 
 from pignacio_scripts.namedtuple import namedtuple_with_defaults
 
+from .bitstring import BitString
 from .logger import Logger
 from .utils import bits_to_int, int_to_bits
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
+
+def as_string(thing):
+    if isinstance(thing, BitString):
+        return thing.as_string()
+    return thing
 
 
 class Integer(object):
@@ -176,9 +183,9 @@ class BinarySchema(object):
                             "Unexpected size for a multiple: {} (Expected {})",
                             len(values[piece.field]), count)
                     for value in values[piece.field]:
-                        res += type_.to_bits(value, parent=values)
+                        res += as_string(type_.to_bits(value, parent=values))
                 else:
-                    res += type_.to_bits(values[piece.field], parent=values)
+                    res += as_string(type_.to_bits(values[piece.field], parent=values))
         return res
 
     def decode(self, binary_str):

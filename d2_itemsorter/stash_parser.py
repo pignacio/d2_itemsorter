@@ -14,6 +14,7 @@ import time
 from pignacio_scripts.terminal import color
 import click
 
+from .bitstring import BitString
 from .items import (MISSING_ITEM_TYPES, UNIQUE_QUALITY_ID, SET_QUALITY_ID,
                     Item, get_item_type_info, item_has_defense,
                     item_has_quantity, item_has_durability)
@@ -56,6 +57,7 @@ def _check_stash(stash):
             if not tail_is_padding:
                 _FAILED_PARSES[item.type()] += 1
             if bits != item_data['__origin']:
+                print bits, item_data['__origin']
                 item_info = item.info()
                 data = "{d.id} = {d.name} ({d.width}x{d.height})".format(
                     d=item_info)
@@ -392,7 +394,7 @@ def _process_handle(handle, patch=False):
         parser = (BinarySchema(_SHARED_STASH_SCHEMA)
                   if binary_str.startswith(_SHARED_STASH_HEADER) else
                   BinarySchema(_PERSONAL_STASH_SCHEMA))
-        stash = parser.decode(binary_str)
+        stash = parser.decode(BitString(binary_str))
         Logger.info('Decoded')
 
         if not _check_stash(stash):
